@@ -80,7 +80,7 @@ class mainGame:
     def run(self):
         self.menu() #show the menu before starting the game
         running = True
-        #GAME LOOP
+        #GAMELOOP
         while running:
             #CHECKS IF THE GAME IS CLOSED
             for event in pygame.event.get():
