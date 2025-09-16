@@ -1,8 +1,17 @@
 from pygame.math import Vector2
 
 #screen
-SCREEN_WIDTH = 640
-SCREEN_HEIGHT = 352
+SCREEN_WIDTH = 1280
+SCREEN_HEIGHT = 720
+TILE_SIZE = 32
+
+#original game resolution
+ORIGINAL_WIDTH = 800
+ORIGINAL_HEIGHT = 600
+
+#zoom in scale
+ZOOM_X = SCREEN_WIDTH / ORIGINAL_WIDTH
+ZOOM_Y = SCREEN_HEIGHT / ORIGINAL_HEIGHT
 
 #player
 PLAYER_WIDTH = 64

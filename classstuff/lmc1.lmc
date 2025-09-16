@@ -1,0 +1,6 @@
+'''A program that loads and outputs the value 10'''
+
+LDA value
+OUT
+HLT
+value DAT 10
