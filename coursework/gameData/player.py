@@ -5,23 +5,27 @@ from support import *
 from timer import Timer
 
 class Player(pygame.sprite.Sprite): #inherits from the sprite class
-    def __init__(self, pos, group): #we need the position and the group of the sprite
+    def __init__(self, pos, group, collisionSprites): #we need the position and the group of the sprite
         super().__init__(group) #pass in the group
 
         self.importAssets() #import the assets for the player
         #needs to be at the beginning so that the player can use the animations
         self.status = 'downIdle' #default status of the player
         self.frameIndex = 0 #default frame index of the player
-        self.z = LAYERS['main']
 
         #General
         self.image = self.animations[self.status][self.frameIndex]
         self.rect = self.image.get_rect(center = pos) #we are getting the center from the parameter
-        
+        self.z = LAYERS['main']
+
         ####Movement attributes####
         self.direction = pygame.math.Vector2() #by default x = 0 and y = 0
         self.pos = pygame.math.Vector2(self.rect.center) #
         self.speed = 200 #speed of the player (I can change it later)
+
+        #Collision
+        self.hitbox = self.rect.copy().inflate(-20, -10) #creates a copy of the rectangle to use as a hitbox
+        self.collisionSprites = collisionSprites #group of the collision sprites
 
         #Timers
         self.timers = {
@@ -160,16 +164,49 @@ class Player(pygame.sprite.Sprite): #inherits from the sprite class
             toolSuffix = self.selectedTool.capitalize() #capitalizes the first letter of the tool Water, Axe, Hoe
             self.status = base + toolSuffix
 
-    def move(self,deltaTime):
-        #I need to normalize a vector (so I need to make sure the character moves in speed 1 in every direction)
-        if self.direction.magnitude() > 0: #so if the player is moving
-            self.direction = self.direction.normalize() #it converts the vector to length
+    def updateTimers(self):
+        for timer in self.timers.values():
+            timer.update()
 
-        #move position based on direction
+    def collision(self, direction):
+        for sprite in self.collisionSprites.sprites():  # fixed name
+            if not hasattr(sprite, 'hitbox'):
+                sprite.hitbox = sprite.rect.copy()  # ensure every collision sprite has a hitbox
+            if sprite.hitbox.colliderect(self.hitbox):
+                if direction == 'horizontal':
+                    if self.direction.x > 0:  # moving right
+                        self.hitbox.right = sprite.hitbox.left
+                    if self.direction.x < 0:  # moving left
+                        self.hitbox.left = sprite.hitbox.right
+                    self.rect.centerx = self.hitbox.centerx
+                    self.pos.x = self.hitbox.centerx
+
+                if direction == 'vertical':
+                    if self.direction.y > 0:  # moving down
+                        self.hitbox.bottom = sprite.hitbox.top
+                    if self.direction.y < 0:  # moving up
+                        self.hitbox.top = sprite.hitbox.bottom
+                    self.rect.centery = self.hitbox.centery
+                    self.pos.y = self.hitbox.centery
+
+    def move(self, deltaTime):
+        # I need to normalize a vector (so I need to make sure the character moves in speed 1 in every direction)
+        if self.direction.magnitude() > 0:  # so if the player is moving
+            self.direction = self.direction.normalize()  # it converts the vector to length 1
+
+        # horizontal movement
         self.pos.x += self.direction.x * self.speed * deltaTime
-        self.pos.y += self.direction.y * self.speed * deltaTime
+        self.hitbox.centerx = round(self.pos.x)  # updates the center of the hitbox to the position of the player
+        self.collision('horizontal')  # checks for horizontal collision
+        self.rect.centerx = self.hitbox.centerx  # updates the center of the rectangle to the center of the hitbox
 
-        #keep player within map boundaries
+        # vertical movement
+        self.pos.y += self.direction.y * self.speed * deltaTime
+        self.hitbox.centery = round(self.pos.y)  # updates the center of the hitbox to the position of the player
+        self.collision('vertical')  # checks for vertical collision
+        self.rect.centery = self.hitbox.centery  # updates the center of the rectangle to the center of the hitbox
+
+        # keep player within map boundaries
         if self.boundary:
             half_w = self.rect.width / 2
             half_h = self.rect.height / 2
@@ -178,20 +215,18 @@ class Player(pygame.sprite.Sprite): #inherits from the sprite class
             min_y = self.boundary.top + half_h
             max_y = self.boundary.bottom - half_h
 
-        if self.pos.x < min_x: self.pos.x = min_x
-        if self.pos.x > max_x: self.pos.x = max_x
-        if self.pos.y < min_y: self.pos.y = min_y
-        if self.pos.y > max_y: self.pos.y = max_y
-        #sync rect with pos
-        self.rect.center = (round(self.pos.x), round(self.pos.y))
+            if self.pos.x < min_x: self.pos.x = min_x
+            if self.pos.x > max_x: self.pos.x = max_x
+            if self.pos.y < min_y: self.pos.y = min_y
+            if self.pos.y > max_y: self.pos.y = max_y
+
+            # sync rect and hitbox with pos
+            self.rect.center = (round(self.pos.x), round(self.pos.y))
+            self.hitbox.center = self.rect.center
 
     def update(self, deltaTime):
         self.input()
         self.move(deltaTime) #updates the position of the player
-        
-        #updates the timers
-        for timer in self.timers.values():
-            timer.update()
-
         self.getStatus() #updates the status of the player
+        self.updateTimers() #updates the timers
         self.animate(deltaTime) #updates the animation of the player

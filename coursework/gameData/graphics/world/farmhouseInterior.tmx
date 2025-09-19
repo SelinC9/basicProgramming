@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="20" height="15" tilewidth="16" tileheight="16" infinite="0" nextlayerid="8" nextobjectid="226">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="20" height="15" tilewidth="16" tileheight="16" infinite="0" nextlayerid="9" nextobjectid="231">
  <tileset firstgid="1" name="farm inside" tilewidth="16" tileheight="16" tilecount="60" columns="6">
   <image source="../tilesets/farm inside.png" width="96" height="160"/>
  </tileset>
@@ -220,7 +220,6 @@
   <object id="193" gid="455" x="240" y="208" width="16" height="16"/>
   <object id="194" gid="440" x="256" y="208" width="16" height="16"/>
   <object id="195" gid="428" x="256" y="192" width="16" height="16"/>
-  <object id="196" gid="440" x="256" y="192" width="16" height="16"/>
   <object id="197" gid="428" x="256" y="176" width="16" height="16"/>
   <object id="198" gid="441" x="208" y="208" width="16" height="16"/>
   <object id="199" gid="429" x="208" y="192" width="16" height="16"/>
@@ -228,17 +227,36 @@
   <object id="201" gid="429" x="208" y="176" width="16" height="16"/>
   <object id="203" gid="355" x="240" y="192" width="16" height="16"/>
   <object id="204" gid="355" x="224" y="192" width="16" height="16"/>
-  <object id="205" x="48" y="48" width="32" height="32">
+  <object id="219" gid="1138" x="144" y="224" width="16" height="16"/>
+  <object id="220" gid="1144" x="144" y="240" width="16" height="16"/>
+  <object id="196" gid="440" x="256" y="192" width="16" height="16"/>
+ </objectgroup>
+ <objectgroup id="8" name="collisons" visible="0">
+  <object id="226" x="48" y="48" width="32" height="32">
    <properties>
     <property name="interactable" type="bool" value="true"/>
     <property name="objectType" value="bed"/>
     <property name="trigger" value="sleep"/>
    </properties>
   </object>
-  <object id="206" x="176" y="48" width="16" height="16">
+  <object id="228" x="16" y="160" width="16" height="32">
    <properties>
     <property name="interactable" type="bool" value="true"/>
-    <property name="objectType" value="couch5"/>
+    <property name="objectType" value="couch"/>
+    <property name="trigger" value="sit"/>
+   </properties>
+  </object>
+  <object id="229" x="80" y="160" width="16" height="32">
+   <properties>
+    <property name="interactable" type="bool" value="true"/>
+    <property name="objectType" value="couch1"/>
+    <property name="trigger" value="sit"/>
+   </properties>
+  </object>
+  <object id="230" x="176" y="48" width="16" height="16">
+   <properties>
+    <property name="interactable" type="bool" value="true"/>
+    <property name="objectType" value="couch2"/>
     <property name="trigger" value="sit"/>
    </properties>
   </object>
@@ -246,20 +264,6 @@
    <properties>
     <property name="interactable" type="bool" value="true"/>
     <property name="objectType" value="couch3"/>
-    <property name="trigger" value="sit"/>
-   </properties>
-  </object>
-  <object id="208" x="80" y="160" width="16" height="32">
-   <properties>
-    <property name="interactable" type="bool" value="true"/>
-    <property name="objectType" value="couch1"/>
-    <property name="trigger" value="sit"/>
-   </properties>
-  </object>
-  <object id="209" x="16" y="160" width="16" height="32">
-   <properties>
-    <property name="interactable" type="bool" value="true"/>
-    <property name="objectType" value="couch"/>
     <property name="trigger" value="sit"/>
    </properties>
   </object>
@@ -277,24 +281,10 @@
     <property name="trigger" value="sit"/>
    </properties>
   </object>
-  <object id="212" x="256" y="176" width="16" height="16">
-   <properties>
-    <property name="interactable" type="bool" value="true"/>
-    <property name="objectType" value="chair2"/>
-    <property name="trigger" value="sit"/>
-   </properties>
-  </object>
   <object id="213" x="256" y="192" width="16" height="16">
    <properties>
     <property name="interactable" type="bool" value="true"/>
     <property name="objectType" value="chair1"/>
-    <property name="trigger" value="sit"/>
-   </properties>
-  </object>
-  <object id="214" x="208" y="64" width="16" height="16">
-   <properties>
-    <property name="interactable" type="bool" value="true"/>
-    <property name="objectType" value="toilet"/>
     <property name="trigger" value="sit"/>
    </properties>
   </object>
@@ -312,8 +302,20 @@
     <property name="trigger" value="cook"/>
    </properties>
   </object>
-  <object id="219" gid="1138" x="144" y="224" width="16" height="16"/>
-  <object id="220" gid="1144" x="144" y="240" width="16" height="16"/>
+  <object id="212" x="256" y="176" width="16" height="16">
+   <properties>
+    <property name="interactable" type="bool" value="true"/>
+    <property name="objectType" value="chair2"/>
+    <property name="trigger" value="sit"/>
+   </properties>
+  </object>
+  <object id="214" x="208" y="64" width="16" height="16">
+   <properties>
+    <property name="interactable" type="bool" value="true"/>
+    <property name="objectType" value="toilet"/>
+    <property name="trigger" value="sit"/>
+   </properties>
+  </object>
   <object id="222" x="144" y="208" width="16" height="32">
    <properties>
     <property name="destination" value="myfarm"/>

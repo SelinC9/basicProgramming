@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="160" height="90" tilewidth="16" tileheight="16" infinite="0" nextlayerid="19" nextobjectid="3496">
- <tileset firstgid="1" source="../tilesets/spring farm tilemap.tsx"/>
+ <tileset firstgid="1" source="../Documents/GitHub/basicProgramming/coursework/gameData/graphics/tilesets/spring farm tilemap.tsx"/>
  <tileset firstgid="181" name="barn" tilewidth="16" tileheight="16" tilecount="216" columns="18">
-  <image source="../tilesets/barn.png" width="288" height="192"/>
+  <image source="../Documents/GitHub/basicProgramming/coursework/gameData/graphics/tilesets/barn.png" width="288" height="192"/>
  </tileset>
  <tileset firstgid="397" name="farm bridges" tilewidth="16" tileheight="16" tilecount="192" columns="12">
-  <image source="../tilesets/farm bridges.png" width="192" height="256"/>
+  <image source="../Documents/GitHub/basicProgramming/coursework/gameData/graphics/tilesets/farm bridges.png" width="192" height="256"/>
  </tileset>
  <tileset firstgid="589" name="spring and summer objects" tilewidth="16" tileheight="16" tilecount="169" columns="13">
-  <image source="../tilesets/spring and summer objects.png" width="208" height="208"/>
+  <image source="../Documents/GitHub/basicProgramming/coursework/gameData/graphics/tilesets/spring and summer objects.png" width="208" height="208"/>
  </tileset>
  <tileset firstgid="758" name="plants" tilewidth="16" tileheight="16" tilecount="90" columns="10">
-  <image source="../tilesets/plants.png" width="160" height="144"/>
+  <image source="../Documents/GitHub/basicProgramming/coursework/gameData/graphics/tilesets/plants.png" width="160" height="144"/>
  </tileset>
  <tileset firstgid="848" name="items" tilewidth="16" tileheight="16" tilecount="50" columns="10">
-  <image source="../tilesets/items.png" width="160" height="80"/>
+  <image source="../Documents/GitHub/basicProgramming/coursework/gameData/graphics/tilesets/items.png" width="160" height="80"/>
  </tileset>
  <layer id="17" name="collision" width="160" height="90">
   <data encoding="csv">
