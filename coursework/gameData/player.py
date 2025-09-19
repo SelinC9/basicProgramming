@@ -24,7 +24,8 @@ class Player(pygame.sprite.Sprite): #inherits from the sprite class
         self.speed = 200 #speed of the player (I can change it later)
 
         #Collision
-        self.hitbox = self.rect.copy().inflate(-20, -10) #creates a copy of the rectangle to use as a hitbox
+        self.hitbox = pygame.Rect(0, 0, 20, 24) #width and height of the hitbox
+        self.hitbox.center = self.rect.center #centers the hitbox on the player
         self.collisionSprites = collisionSprites #group of the collision sprites
 
         #Timers
@@ -52,7 +53,25 @@ class Player(pygame.sprite.Sprite): #inherits from the sprite class
         self.boundary = rect.copy() #creates a copy of the rectangle
 
     def useTool(self):
-        pass
+        #this function will be called when the tool use timer is finished
+        facingOffset = pygame.math.Vector2(0,0)
+        if 'up' in self.status:
+            facingOffset.y = -16
+        elif 'down' in self.status:
+            facingOffset.y = 16
+        elif 'left' in self.status:
+            facingOffset.x = -16
+        elif 'right' in self.status:
+            facingOffset.x = 16
+
+        targetPos = self.pos + facingOffset
+
+        if self.selectedTool == 'hoe': # if the selected tool is the hoe
+            self.level.tillSoil(targetPos)
+        elif self.selectedTool == 'axe': # if the selected tool is the axe
+            self.level.chopTree(targetPos)
+        elif self.selectedTool == 'wateringCan': # if the selected tool is the watering can
+            self.level.waterPlants(targetPos)
 
     def useSeed(self):
         pass
@@ -68,12 +87,8 @@ class Player(pygame.sprite.Sprite): #inherits from the sprite class
         #imported from my sprites folder, all the keys correspond with the file names
         for animation in self.animations.keys():
             fullPath = characterPath + animation #correlates with the location of the folders
-            print('Importing player animation from:', fullPath) #for testing purposes
             frames = importFolder(fullPath)  # returns a list of surfaces
             self.animations[animation] = frames
-        
-        for key, value in self.animations.items():
-           print(f"{key}: {len(value)} frames, first frame: {value[0] if value else 'None'}") #for testing purposes
 
     def animate(self, deltaTime):
         self.frameIndex += 10 * deltaTime #changes the frame index based on the time passed
@@ -103,7 +118,6 @@ class Player(pygame.sprite.Sprite): #inherits from the sprite class
                 self.direction.x = -1 #changes the y-coordinate by 1
                 self.status = 'left'
             
-
             #If no movement detected, switch to idle
             if self.direction.x == 0 and self.direction.y == 0:
                 if 'left' in self.status:
@@ -117,25 +131,22 @@ class Player(pygame.sprite.Sprite): #inherits from the sprite class
 
             #tool use
             if keys[pygame.K_SPACE]:
-                #timer for the tool use
                 self.timers['tool use'].activate()
                 self.direction = pygame.math.Vector2() #so the player can't move while using the tool
                 self.frameIndex = 0 #resets the frame index to 0
 
             #change tool
             if keys[pygame.K_q] and not self.timers['tool switch'].active:
-                self.timers['tool switch'].activate() #activates the tool switch timer
-                self.toolIndex += 1 #changes the tool index by 1
-                #if tool index is greater than the number of tools, reset it to 0
+                self.timers['tool switch'].activate()
+                self.toolIndex += 1
                 self.toolIndex = self.toolIndex if self.toolIndex < len(self.tools) else 0
-                self.selectedTool = self.tools[self.toolIndex] #changes the selected tool based on the tool index (using modulo to loop through the list)
+                self.selectedTool = self.tools[self.toolIndex]
 
             #seed use
             if keys[pygame.K_LCTRL]:
                 self.timers['seed use'].activate()
                 self.direction = pygame.math.Vector2()
                 self.frameIndex = 0
-                print('use seed')
 
             #change seed
             if keys[pygame.K_e] and not self.timers['seed switch'].active:
@@ -143,7 +154,6 @@ class Player(pygame.sprite.Sprite): #inherits from the sprite class
                 self.seedIndex += 1
                 self.seedIndex = self.seedIndex if self.seedIndex < len(self.seeds) else 0
                 self.selectedSeed = self.seeds[self.seedIndex]
-                print(self.selectedSeed)
 
     def getStatus(self):
         if "up" in self.status:
@@ -155,13 +165,10 @@ class Player(pygame.sprite.Sprite): #inherits from the sprite class
         else:
               base = "right"
 
-        #if not moving and not using a tool
         if self.direction.magnitude() == 0 and not self.timers['tool use'].active:
             self.status = base + "Idle"
-
-        #if using a tool
         elif self.timers['tool use'].active:
-            toolSuffix = self.selectedTool.capitalize() #capitalizes the first letter of the tool Water, Axe, Hoe
+            toolSuffix = self.selectedTool.capitalize()
             self.status = base + toolSuffix
 
     def updateTimers(self):
@@ -169,44 +176,37 @@ class Player(pygame.sprite.Sprite): #inherits from the sprite class
             timer.update()
 
     def collision(self, direction):
-        for sprite in self.collisionSprites.sprites():  # fixed name
+        for sprite in self.collisionSprites.sprites():
             if not hasattr(sprite, 'hitbox'):
-                sprite.hitbox = sprite.rect.copy()  # ensure every collision sprite has a hitbox
+                sprite.hitbox = sprite.rect.copy()
             if sprite.hitbox.colliderect(self.hitbox):
                 if direction == 'horizontal':
-                    if self.direction.x > 0:  # moving right
+                    if self.direction.x > 0:
                         self.hitbox.right = sprite.hitbox.left
-                    if self.direction.x < 0:  # moving left
+                    if self.direction.x < 0:
                         self.hitbox.left = sprite.hitbox.right
                     self.rect.centerx = self.hitbox.centerx
                     self.pos.x = self.hitbox.centerx
-
                 if direction == 'vertical':
-                    if self.direction.y > 0:  # moving down
+                    if self.direction.y > 0:
                         self.hitbox.bottom = sprite.hitbox.top
-                    if self.direction.y < 0:  # moving up
+                    if self.direction.y < 0:
                         self.hitbox.top = sprite.hitbox.bottom
                     self.rect.centery = self.hitbox.centery
                     self.pos.y = self.hitbox.centery
 
     def move(self, deltaTime):
-        # I need to normalize a vector (so I need to make sure the character moves in speed 1 in every direction)
-        if self.direction.magnitude() > 0:  # so if the player is moving
-            self.direction = self.direction.normalize()  # it converts the vector to length 1
+        if self.direction.magnitude() > 0:
+            self.direction = self.direction.normalize()
 
-        # horizontal movement
         self.pos.x += self.direction.x * self.speed * deltaTime
-        self.hitbox.centerx = round(self.pos.x)  # updates the center of the hitbox to the position of the player
-        self.collision('horizontal')  # checks for horizontal collision
-        self.rect.centerx = self.hitbox.centerx  # updates the center of the rectangle to the center of the hitbox
+        self.hitbox.centerx = round(self.pos.x)
+        self.collision('horizontal')
 
-        # vertical movement
         self.pos.y += self.direction.y * self.speed * deltaTime
-        self.hitbox.centery = round(self.pos.y)  # updates the center of the hitbox to the position of the player
-        self.collision('vertical')  # checks for vertical collision
-        self.rect.centery = self.hitbox.centery  # updates the center of the rectangle to the center of the hitbox
+        self.hitbox.centery = round(self.pos.y)
+        self.collision('vertical')
 
-        # keep player within map boundaries
         if self.boundary:
             half_w = self.rect.width / 2
             half_h = self.rect.height / 2
@@ -220,13 +220,12 @@ class Player(pygame.sprite.Sprite): #inherits from the sprite class
             if self.pos.y < min_y: self.pos.y = min_y
             if self.pos.y > max_y: self.pos.y = max_y
 
-            # sync rect and hitbox with pos
             self.rect.center = (round(self.pos.x), round(self.pos.y))
             self.hitbox.center = self.rect.center
 
     def update(self, deltaTime):
         self.input()
-        self.move(deltaTime) #updates the position of the player
-        self.getStatus() #updates the status of the player
-        self.updateTimers() #updates the timers
-        self.animate(deltaTime) #updates the animation of the player
+        self.move(deltaTime)
+        self.getStatus()
+        self.updateTimers()
+        self.animate(deltaTime)

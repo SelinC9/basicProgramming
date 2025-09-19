@@ -1,11 +1,10 @@
 import pygame
 import os
-import xml.etree.ElementTree as ET #to parse the tmx file
+from pytmx.util_pygame import load_pygame
 from settings import *
-from player import Player #imports the player class
+from player import Player
 from overlay import Overlay
 from sprites import Generic, Wildflower, Tree
-from pytmx.util_pygame import load_pygame   #to load the tmx file
 
 # Zoom factors for screen scaling
 ZOOM_X = SCREEN_WIDTH / 1280
@@ -14,10 +13,16 @@ ZOOM_Y = SCREEN_HEIGHT / 720
 class Level:
     def __init__(self):
         self.displaySurface = pygame.display.get_surface() #gets the display surface
-
+        self.soilTiles = pygame.sprite.Group() #group for the soil tiles
+        self.trees = pygame.sprite.Group() #group for the trees
         self.collisionSprites = pygame.sprite.Group() #group for the collision sprites
-        mapPath = os.path.join(os.path.dirname(__file__), "map.xml") #path to the tmx file
-        self.loadXMLCollision(mapPath) ####
+        self.interactables = []  # group for interactable objects
+
+        # Transition attributes
+        self.mapTransitions = {} #dictionary to store the map transitions
+        self.transitioning = False #whether the player is transitioning between maps
+        self.transitionSpeed = 500 #speed of the transition
+        self.transitionAlpha = 0 #alpha value for the transition
 
         #loads the tmx file to get map dimensions before creating camera
         tmxData = load_pygame('coursework\\gameData\\graphics\\world\\myfarm.tmx') #loads the tmx file
@@ -26,101 +31,42 @@ class Level:
         self.mapRect = pygame.Rect(0, 0, map_w * ZOOM_X, map_h * ZOOM_Y)
 
         self.allSprites = CameraGroup(self.mapRect) #draw and update all sprites
-        self.collisionSprites = pygame.sprite.Group() #group for the collision sprites
-        self.interactables = []
-
-        # Transition attributes
-        self.transitioning = False #whether the player is transitioning between maps
-        self.transition_timer = 0  #timer for the transition
-        self.transition_duration = 0.5  # half a second before map switches
-        self.transition_target = None
 
         self.setup() #sets up the level
 
-    def loadXMLCollision(self, mapFile):
-        """Parses an XML file to create collision sprites"""
-        tree = ET.parse(mapFile) #parses the tmx file
-        root = tree.getroot() #gets the root of the tmx file
+    def tillSoil(self, targetPos): #tills the soil at the target position
+        for tile in self.soilTiles: #for each soil tile
+            if tile.rect.collidepoint(targetPos): #if the tile collides with the target position
+                tile.till() #tills the soil
+                break #stop after tilling one tile
 
-        for obj in root.findall(".//object"): #for each object in the tmx file
-            x = float(obj.get('x', 0))
-            y = float(obj.get('y', 0))
-            width = float(obj.get('width', 0))
-            height = float(obj.get('height', 0))
+    def chopTree(self, targetPos): #chops the tree at the target position
+        for tree in self.trees: #for each tree
+            if tree.rect.collidepoint(targetPos): #if the tree collides with the target position
+                tree.chop() #chops the tree
+                break #stop after chopping one tree
 
-            if width > 0 and height > 0:
-                sprite = pygame.sprite.Sprite()
-                sprite.rect = pygame.Rect(x * ZOOM_X, y * ZOOM_Y, width * ZOOM_X, height * ZOOM_Y)
-                self.collisionSprites.add(sprite)
+    def waterSoil(self, targetPos): #waters the soil at the target position
+        for tile in self.soilTiles: #for each soil tile
+            if tile.rect.collidepoint(targetPos): #if the tile collides with the target position
+                tile.water() #waters the soil
+                break #stop after watering one tile
 
     def setup(self):
         tmxData = load_pygame('coursework\\gameData\\graphics\\world\\myfarm.tmx') #loads the tmx file
 
         #fence
         for x, y, surf in tmxData.get_layer_by_name("fence").tiles():  # for each tile in the fence layer
-            # Scale tile surface according to zoom
             tile_surf = pygame.transform.smoothscale(
                 surf,
                 (int(tmxData.tilewidth * ZOOM_X), int(tmxData.tileheight * ZOOM_Y))
             )
-            # Apply scaling to position as well
             pos = (x * tmxData.tilewidth * ZOOM_X, y * tmxData.tileheight * ZOOM_Y)
-            sprite = Generic(pos, tile_surf, [self.allSprites, self.collisionSprites])
+            Generic(pos, tile_surf, [self.allSprites, self.collisionSprites])
 
         #wildflowers
         for obj in tmxData.get_layer_by_name("decor"): #for each object in the wildflower layer 
             Wildflower((obj.x, obj.y), obj.image, [self.allSprites]) #creates a wildflower object (no collision)
-
-        #trees
-        for obj in tmxData.get_layer_by_name("tree"): #object layer
-            surf = None
-            if hasattr(obj, "gid") and obj.gid:
-                surf = tmxData.get_tile_image_by_gid(obj.gid)
-            if surf:
-                tile_surf = pygame.transform.smoothscale(
-                    surf, 
-                    (int(tmxData.tilewidth * ZOOM_X), int(tmxData.tileheight * ZOOM_Y))
-                )
-                tile_sprite = Generic(
-                    pos=(obj.x * ZOOM_X, obj.y * ZOOM_Y),
-                    surf=tile_surf,
-                    groups=[self.allSprites, self.collisionSprites], # tree is collidable
-                    z=LAYERS['main']
-                )
-                # Add interactable for choppable trees
-                if getattr(obj, "choppable", False):
-                    self.interactables.append({
-                        "rect": tile_sprite.rect,
-                        "objectType": "tree",
-                        "trigger": "chop",
-                        "health": getattr(obj, "health", 4),
-                        "sprite": tile_sprite
-                    })
-
-        #rocks
-        for obj in tmxData.get_layer_by_name("rock"): #object layer
-            surf = None
-            if hasattr(obj, "gid") and obj.gid:
-                surf = tmxData.get_tile_image_by_gid(obj.gid)
-            if surf:
-                tile_surf = pygame.transform.smoothscale(
-                    surf, 
-                    (int(tmxData.tilewidth * ZOOM_X), int(tmxData.tileheight * ZOOM_Y))
-                )
-                tile_sprite = Generic(
-                    pos=(obj.x * ZOOM_X, obj.y * ZOOM_Y),
-                    surf=tile_surf,
-                    groups=[self.allSprites, self.collisionSprites], # rock is collidable
-                    z=LAYERS['main']
-                )
-                # Add interactable for mining rocks
-                self.interactables.append({
-                    "rect": tile_sprite.rect,
-                    "objectType": "rock",
-                    "trigger": "mine",
-                    "health": 3,
-                    "sprite": tile_sprite
-                })
 
         # Player spawn
         spawnPoint = None
@@ -131,7 +77,7 @@ class Level:
         if not spawnPoint:
             spawnPoint = (400 * ZOOM_X, 300 * ZOOM_Y)  # fallback default if no spawn point found
 
-        # Now create the player with collisionSprites
+        # Create the player with collisionSprites
         self.player = Player(spawnPoint, self.allSprites, self.collisionSprites)
         map_w = tmxData.width * tmxData.tilewidth
         map_h = tmxData.height * tmxData.tileheight
@@ -140,66 +86,75 @@ class Level:
         # Overlay after player exists
         self.overlay = Overlay(self.player)
 
-        # Load ground image and scale to match map size
-        ground_surf = pygame.image.load("coursework\\gameData\\graphics\\world\\myfarm.png").convert_alpha()
-        map_w_scaled = int(map_w * ZOOM_X)
-        map_h_scaled = int(map_h * ZOOM_Y)
-        ground_surf = pygame.transform.smoothscale(ground_surf, (map_w_scaled, map_h_scaled))
+        #trees
+        for obj in tmxData.get_layer_by_name("tree"): #for each object in the tree layer
+            Tree((obj.x, obj.y), obj.image, [self.allSprites], obj.name) #creates a tree object (no collision)
 
-        # Create the ground layer sprite
-        Generic(
-            pos=(0,0),
-            surf=ground_surf,
-            groups=self.allSprites,
-            z=LAYERS['ground']
-        ) # assigning the ground layer to the farm image
+            # create a smaller collision hitbox for the tree
+            hitboxSprite = pygame.sprite.Sprite()
+            hitboxSprite.hitbox = pygame.Rect(0, 0, 12 * ZOOM_X, 16 * ZOOM_Y)
+            hitboxSprite.hitbox.midbottom = (obj.x * ZOOM_X + tmxData.tilewidth * ZOOM_X / 2,
+                                             obj.y * ZOOM_Y + tmxData.tileheight * ZOOM_Y)
+            self.collisionSprites.add(hitboxSprite)
 
-        # Find doors
+        #rocks
+        for obj in tmxData.get_layer_by_name("rock"):  # object layer
+            Generic((obj.x * ZOOM_X, obj.y * ZOOM_Y), obj.image, [self.allSprites])
+            hitboxSprite = pygame.sprite.Sprite()
+            hitboxSprite.hitbox = pygame.Rect(0, 0, 16 * ZOOM_X, 16 * ZOOM_Y)
+            hitboxSprite.hitbox.midbottom = (obj.x * ZOOM_X + tmxData.tilewidth * ZOOM_X / 2,
+                                             obj.y * ZOOM_Y + tmxData.tileheight * ZOOM_Y)
+            self.collisionSprites.add(hitboxSprite)
+
+        #interactables (doors, etc.)
         for obj in tmxData.objects:
-            if getattr(obj, "objectType", None) == "door": #if the object is a door
-                door_rect = pygame.Rect(obj.x * ZOOM_X, obj.y * ZOOM_Y, obj.width * ZOOM_X, obj.height * ZOOM_Y) #scaled door rectangle
+            if getattr(obj, "objectType", None) == "interactable":
+                rect = pygame.Rect(obj.x * ZOOM_X, obj.y * ZOOM_Y, obj.width * ZOOM_X, obj.height * ZOOM_Y)
                 self.interactables.append({
-                    "rect": door_rect,
+                    "rect": rect,
                     "destination": getattr(obj, "destination", None),
-                    "trigger": getattr(obj, "trigger", None),
+                    "trigger": getattr(obj, "trigger", "onPlayerTouch"),
                     "spawn_point": getattr(obj, "spawnPoint", None)
                 })
 
+        #ground layer
+        groundSurf = pygame.image.load("coursework\\gameData\\graphics\\world\\myfarm.png").convert_alpha()
+        groundSurf = pygame.transform.smoothscale(groundSurf, (int(map_w * ZOOM_X), int(map_h * ZOOM_Y)))
+        Generic((0, 0), groundSurf, self.allSprites, z=LAYERS['ground'])
 
     def loadMap(self, map_name, spawn_at=None):
-        # Calculate map dimensions and scale
+        # Reload a new map (like setup, simplified)
         tmxData = load_pygame(f'coursework\\gameData\\graphics\\world\\{map_name}.tmx')
         map_w = tmxData.width * tmxData.tilewidth
         map_h = tmxData.height * tmxData.tileheight
-        map_w_scaled = int(map_w * ZOOM_X)
-        map_h_scaled = int(map_h * ZOOM_Y)
-
-        # Re-initialize the CameraGroup with the new mapRect
-        self.mapRect = pygame.Rect(0, 0, map_w_scaled, map_h_scaled)
+        self.mapRect = pygame.Rect(0, 0, map_w * ZOOM_X, map_h * ZOOM_Y)
         self.allSprites = CameraGroup(self.mapRect)
-        self.allSprites.add(self.player)  # Re-add the player to the new group
+        self.allSprites.add(self.player)
 
-        # Set the player position
+        # Set player position
         if spawn_at:
             self.player.pos = pygame.math.Vector2(spawn_at)
         else:
             self.player.pos = pygame.math.Vector2(400 * ZOOM_X, 300 * ZOOM_Y)
         self.player.rect.center = self.player.pos
-
-        # Load and scale ground image
-        ground_surf = pygame.image.load(f"coursework\\gameData\\graphics\\world\\{map_name}.png").convert_alpha()
-        ground_surf = pygame.transform.smoothscale(ground_surf, (map_w_scaled, map_h_scaled))
-
-        Generic(
-            pos=(0, 0),
-            surf=ground_surf,
-            groups=self.allSprites,
-            z=LAYERS['ground']
-        )
-
-        # Set player boundaries to the new map size
         self.player.setMapBounds(self.mapRect)
-        self.allSprites.mapRect = self.mapRect
+
+        # Load ground
+        groundSurf = pygame.image.load(f"coursework\\gameData\\graphics\\world\\barnInterior.png").convert_alpha()
+        groundSurf = pygame.transform.smoothscale(groundSurf, (int(map_w * ZOOM_X), int(map_h * ZOOM_Y)))
+        Generic((0, 0), groundSurf, self.allSprites, z=LAYERS['ground'])
+
+        self.interactables = []
+        # reload interactables
+        for obj in tmxData.objects:
+            if getattr(obj, "objectType", None) == "interactable":
+                rect = pygame.Rect(obj.x * ZOOM_X, obj.y * ZOOM_Y, obj.width * ZOOM_X, obj.height * ZOOM_Y)
+                self.interactables.append({
+                    "rect": rect,
+                    "destination": getattr(obj, "destination", None),
+                    "trigger": getattr(obj, "trigger", "onPlayerTouch"),
+                    "spawn_point": getattr(obj, "spawnPoint", None)
+                })
 
     def updateTransition(self, deltaTime):
         if self.transitioning:
@@ -213,10 +168,25 @@ class Level:
                 self.transitioning = False
                 self.transition_target = None
 
+    def handleInteractions(self): #checks for interactions with the interactable objects
+        for obj in self.interactables: #for each interactable object
+            if self.player.rect.colliderect(obj["rect"]):
+                if obj["trigger"] == "onPlayerTouch":
+                    if obj["destination"]: #if the object has a destination
+                        if not self.transitioning:
+                            self.transitioning = True
+                            self.transition_timer = 0 #reset the timer
+                            self.transition_target = {
+                                "destination": obj["destination"],
+                                "spawn_point": obj.get("spawn_point", None) #optional spawn point
+                            }
+                        break #stop after triggering transition
+
     def run(self, deltaTime): 
         self.updateTransition(deltaTime)  # update smooth transition
         self.allSprites.customisedDraw(self.player)
         self.allSprites.update(deltaTime) #updates all the sprites (like the player) according to the time frame
+        self.handleInteractions() #checks for interactions
         self.overlay.display() #displays the overlay (like the tool and seed)
 
 class CameraGroup(pygame.sprite.Group): #camera group to follow the player
@@ -236,7 +206,12 @@ class CameraGroup(pygame.sprite.Group): #camera group to follow the player
         self.offset.x = max(0, min(self.offset.x, maxOffsetX)) #clamps the offset to the map boundaries (x coordinate)
         self.offset.y = max(0, min(self.offset.y, maxOffsetY)) #clamps the offset to the map boundaries (y coordinate)
 
-        #Draw all sprites in order of z
-        for sprite in sorted(self.sprites(), key=lambda sprite: sprite.z): 
-            offsetPos = sprite.rect.topleft - self.offset
-            self.displaySurface.blit(sprite.image, offsetPos)
+        for layer in LAYERS.values(): #for each layer in the layers dictionary
+            for sprite in sorted(self.sprites(), key = lambda sprite: sprite.rect.centery):
+                if sprite.z == layer:
+                    offsetRect = sprite.rect.copy() #copy of the rectangle of the sprite
+                    offsetRect.center -= self.offset #centers the rectangle of the sprite according to the offset
+                    scaledImage = pygame.transform.smoothscale(sprite.image, 
+                                    (int(sprite.rect.width * ZOOM_X), int(sprite.rect.height * ZOOM_Y))) #scales the image of the sprite according to the zoom factors
+                    scaled_rect = scaledImage.get_rect(center=offsetRect.center) #gets the rectangle of the scaled image
+                    self.displaySurface.blit(scaledImage, scaled_rect) #blits the scaled image to the display surface
