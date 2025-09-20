@@ -5,8 +5,9 @@ from support import *
 from timer import Timer
 
 class Player(pygame.sprite.Sprite): #inherits from the sprite class
-    def __init__(self, pos, group, collisionSprites): #we need the position and the group of the sprite
+    def __init__(self, pos, group, collisionSprites, level): #we need the position and the group of the sprite
         super().__init__(group) #pass in the group
+        self.level = level
 
         self.importAssets() #import the assets for the player
         #needs to be at the beginning so that the player can use the animations
@@ -46,6 +47,27 @@ class Player(pygame.sprite.Sprite): #inherits from the sprite class
         self.seedIndex = 0
         self.selectedSeed = self.seeds[self.seedIndex] #default seed of the player
 
+        #inventory
+        self.itemInventory = {
+            'kale':        0,
+            'parsnips':    0,
+            'beans':       0,
+            'potatoes':    0,
+            'melon':       0,
+            'corn':        0,
+            'hotPeppers':  0,
+            'tomato':      0,
+            'cranberries': 0,
+            'pumpkin':     0,
+            'berries':     0,
+            'onion':       0,
+            'beets':       0,
+            'artichoke':   0,
+            'wood':        0,
+            'stone':       0,
+        }
+        self.inventoryCapacity = 20  # maximum number of items in inventory
+
         # Map boundaries (set externally by Level)
         self.boundary = None
 
@@ -53,28 +75,47 @@ class Player(pygame.sprite.Sprite): #inherits from the sprite class
         self.boundary = rect.copy() #creates a copy of the rectangle
 
     def useTool(self):
-        #this function will be called when the tool use timer is finished
-        facingOffset = pygame.math.Vector2(0,0)
-        if 'up' in self.status:
-            facingOffset.y = -16
-        elif 'down' in self.status:
-            facingOffset.y = 16
-        elif 'left' in self.status:
-            facingOffset.x = -16
-        elif 'right' in self.status:
-            facingOffset.x = 16
+        print('tool use')
+        # hoe the soil
+        if self.selectedTool == 'hoe':
+            self.level.tillSoil(self.targetPos)
 
-        targetPos = self.pos + facingOffset
+        # cut down tree
+        elif self.selectedTool == 'axe':
+            for tree in self.level.trees:
+                if tree.rect.collidepoint(self.targetPos):
+                    tree.chop(self.level.particles) # calls the chop method of the tree
 
-        if self.selectedTool == 'hoe': # if the selected tool is the hoe
-            self.level.tillSoil(targetPos)
-        elif self.selectedTool == 'axe': # if the selected tool is the axe
-            self.level.chopTree(targetPos)
-        elif self.selectedTool == 'wateringCan': # if the selected tool is the watering can
-            self.level.waterPlants(targetPos)
+        # water the soil
+        elif self.selectedTool == 'wateringCan':
+            self.level.waterSoil(self.targetPos)
+
+    def getTargetPos(self):
+    # Map the player's status to a direction for tool offset
+        if self.status.startswith('up'):
+            direction = 'up'
+        elif self.status.startswith('down'):
+            direction = 'down'
+        elif self.status.startswith('left'):
+            direction = 'left'
+        elif self.status.startswith('right'):
+            direction = 'right'
+        else:
+            direction = 'down'  # fallback if something unexpected
+
+        self.targetPos = pygame.math.Vector2(self.rect.center) + PLAYER_TOOL_OFFSET[direction]
 
     def useSeed(self):
-        pass
+        self.level.plantSeed(self.targetPos, self.selectedSeed)
+
+    def addItem(self, item, amount=1):
+        if self.inventoryFull():
+            return False  # Inventory full, cannot add item
+        self.itemInventory[item] += amount
+        return True  # Item added successfully
+    
+    def inventoryFull(self):
+        return sum(self.itemInventory.values()) >= self.inventoryCapacity
 
     def importAssets(self):
         characterPath = "coursework\\gameData\\graphics\\character\\" #path to the character folder
@@ -228,4 +269,5 @@ class Player(pygame.sprite.Sprite): #inherits from the sprite class
         self.move(deltaTime)
         self.getStatus()
         self.updateTimers()
+        self.getTargetPos()
         self.animate(deltaTime)

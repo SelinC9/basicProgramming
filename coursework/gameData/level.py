@@ -4,7 +4,7 @@ from pytmx.util_pygame import load_pygame
 from settings import *
 from player import Player
 from overlay import Overlay
-from sprites import Generic, Wildflower, Tree
+from sprites import Generic, Wildflower, Tree, Particle
 
 # Zoom factors for screen scaling
 ZOOM_X = SCREEN_WIDTH / 1280
@@ -17,6 +17,7 @@ class Level:
         self.trees = pygame.sprite.Group() #group for the trees
         self.collisionSprites = pygame.sprite.Group() #group for the collision sprites
         self.interactables = []  # group for interactable objects
+        self.particles = pygame.sprite.Group()  # group for leaf particles
 
         # Transition attributes
         self.mapTransitions = {} #dictionary to store the map transitions
@@ -43,7 +44,7 @@ class Level:
     def chopTree(self, targetPos): #chops the tree at the target position
         for tree in self.trees: #for each tree
             if tree.rect.collidepoint(targetPos): #if the tree collides with the target position
-                tree.chop() #chops the tree
+                tree.chop(self.particles) #chops the tree and spawn leaves
                 break #stop after chopping one tree
 
     def waterSoil(self, targetPos): #waters the soil at the target position
@@ -78,7 +79,7 @@ class Level:
             spawnPoint = (400 * ZOOM_X, 300 * ZOOM_Y)  # fallback default if no spawn point found
 
         # Create the player with collisionSprites
-        self.player = Player(spawnPoint, self.allSprites, self.collisionSprites)
+        self.player = Player(spawnPoint, self.allSprites, self.collisionSprites, self)
         map_w = tmxData.width * tmxData.tilewidth
         map_h = tmxData.height * tmxData.tileheight
         self.player.setMapBounds(pygame.Rect(0, 0, map_w * ZOOM_X, map_h * ZOOM_Y))
@@ -88,14 +89,26 @@ class Level:
 
         #trees
         for obj in tmxData.get_layer_by_name("tree"): #for each object in the tree layer
-            Tree((obj.x, obj.y), obj.image, [self.allSprites], obj.name) #creates a tree object (no collision)
+            tree = Tree(
+                pos=(obj.x, obj.y), 
+                surf=obj.image, 
+                groups=[self.allSprites, self.trees, self.collisionSprites],  # include collision
+                name=obj.name,
+                playerAdded=self.playerAdded
+            ) #creates a tree object
+            self.trees.add(tree)
 
             # create a smaller collision hitbox for the tree
             hitboxSprite = pygame.sprite.Sprite()
             hitboxSprite.hitbox = pygame.Rect(0, 0, 12 * ZOOM_X, 16 * ZOOM_Y)
             hitboxSprite.hitbox.midbottom = (obj.x * ZOOM_X + tmxData.tilewidth * ZOOM_X / 2,
-                                             obj.y * ZOOM_Y + tmxData.tileheight * ZOOM_Y)
-            self.collisionSprites.add(hitboxSprite)
+                                            obj.y * ZOOM_Y + tmxData.tileheight * ZOOM_Y)
+
+            if tree.alive:  # only add hitbox if the tree is alive
+                self.collisionSprites.add(hitboxSprite)
+
+            tree.hitboxSprite = hitboxSprite  # link the hitbox to the tree for later use
+
 
         #rocks
         for obj in tmxData.get_layer_by_name("rock"):  # object layer
@@ -156,6 +169,14 @@ class Level:
                     "spawn_point": getattr(obj, "spawnPoint", None)
                 })
 
+    def playerAdded(self, item):
+        # tries to add an item to the player's inventory
+        if self.player.addItem(item):  # checks inventory and adds
+            print(f"{item} added to inventory")  # successful addition, do anything else if needed
+        else:
+            print("Inventory is full")  # could trigger UI notification
+
+
     def updateTransition(self, deltaTime):
         if self.transitioning:
             self.transition_timer += deltaTime #increment the timer
@@ -186,8 +207,20 @@ class Level:
         self.updateTransition(deltaTime)  # update smooth transition
         self.allSprites.customisedDraw(self.player)
         self.allSprites.update(deltaTime) #updates all the sprites (like the player) according to the time frame
-        self.handleInteractions() #checks for interactions
-        self.overlay.display() #displays the overlay (like the tool and seed)
+
+        # update and draw leaf particles
+        # update and draw leaf particles
+        self.particles.update(deltaTime)
+        for particle in self.particles:
+            offsetRect = particle.rect.copy()
+            offsetRect.center -= self.allSprites.offset  # apply camera offset
+            scaledImage = pygame.transform.smoothscale(
+                particle.image,
+                (int(particle.rect.width * ZOOM_X), int(particle.rect.height * ZOOM_Y))
+            )
+            scaled_rect = scaledImage.get_rect(center=offsetRect.center)
+            self.displaySurface.blit(scaledImage, scaled_rect)
+
 
 class CameraGroup(pygame.sprite.Group): #camera group to follow the player
     def __init__(self, mapRect):
@@ -196,22 +229,32 @@ class CameraGroup(pygame.sprite.Group): #camera group to follow the player
         self.offset = pygame.math.Vector2() #initial offset of the camera
         self.mapRect = mapRect
 
-    def customisedDraw(self, player): #follows the player
-        self.offset.x = player.rect.centerx - SCREEN_WIDTH // 2 #centers the player in the middle of the screen (x coordinate)
-        self.offset.y = player.rect.centery - SCREEN_HEIGHT // 2 #centers the player in the middle of the screen (y coordinate)
+    def customisedDraw(self, player):
+        # Center the camera on the player
+        self.offset.x = player.rect.centerx - SCREEN_WIDTH // 2
+        self.offset.y = player.rect.centery - SCREEN_HEIGHT // 2
 
-        #Clamp the offset to the map boundaries
-        maxOffsetX = self.mapRect.width - SCREEN_WIDTH #maximum offset of the camera
-        maxOffsetY = self.mapRect.height - SCREEN_HEIGHT #maximum offset of the camera
-        self.offset.x = max(0, min(self.offset.x, maxOffsetX)) #clamps the offset to the map boundaries (x coordinate)
-        self.offset.y = max(0, min(self.offset.y, maxOffsetY)) #clamps the offset to the map boundaries (y coordinate)
+        # Clamp the camera offset so it doesn't go outside the map
+        maxOffsetX = self.mapRect.width - SCREEN_WIDTH
+        maxOffsetY = self.mapRect.height - SCREEN_HEIGHT
+        self.offset.x = max(0, min(self.offset.x, maxOffsetX))
+        self.offset.y = max(0, min(self.offset.y, maxOffsetY))
 
-        for layer in LAYERS.values(): #for each layer in the layers dictionary
-            for sprite in sorted(self.sprites(), key = lambda sprite: sprite.rect.centery):
-                if sprite.z == layer:
-                    offsetRect = sprite.rect.copy() #copy of the rectangle of the sprite
-                    offsetRect.center -= self.offset #centers the rectangle of the sprite according to the offset
-                    scaledImage = pygame.transform.smoothscale(sprite.image, 
-                                    (int(sprite.rect.width * ZOOM_X), int(sprite.rect.height * ZOOM_Y))) #scales the image of the sprite according to the zoom factors
-                    scaled_rect = scaledImage.get_rect(center=offsetRect.center) #gets the rectangle of the scaled image
-                    self.displaySurface.blit(scaledImage, scaled_rect) #blits the scaled image to the display surface
+        # Draw sprites layer by layer
+        for layer in LAYERS.values():
+            for sprite in sorted(self.sprites(), key=lambda s: s.rect.centery):  # Sort sprites by Y position
+                if getattr(sprite, "z", LAYERS['main']) == layer:  # Only draw sprites in the current layer
+                    # Offset sprite rect for camera position
+                    offsetRect = sprite.rect.copy()
+                    offsetRect.center -= self.offset
+
+                    # Scale the sprite image according to zoom
+                    scaledImage = pygame.transform.smoothscale(
+                        sprite.image,
+                        (int(sprite.rect.width * ZOOM_X), int(sprite.rect.height * ZOOM_Y))
+                    )
+                    scaled_rect = scaledImage.get_rect(center=offsetRect.center)
+
+                    # Draw the sprite
+                    self.displaySurface.blit(scaledImage, scaled_rect)
+
