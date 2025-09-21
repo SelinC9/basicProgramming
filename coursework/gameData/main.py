@@ -2,6 +2,7 @@ import pygame
 import sys
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT #imports the height and the width
 from level import Level #imports the level class
+from inventory import Inventory  # import inventory
 
 class mainGame:
     def __init__(self):
@@ -80,6 +81,7 @@ class mainGame:
     def run(self):
         self.menu() #show the menu before starting the game
         running = True
+        inventory = Inventory()
         #GAMELOOP
         while running:
             #CHECKS IF THE GAME IS CLOSED
@@ -87,9 +89,18 @@ class mainGame:
                 if event.type == pygame.QUIT:
                     running = False
                     sys.exit()
+
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_i: #if the i key is pressed, toggle the inventory
+                        inventory.toggle()
+                    elif event.key == pygame.K_e:  # next slot
+                        inventory.selectNext()
+                    elif event.key == pygame.K_q:  # previous slot
+                        inventory.selectPrev()
                     
             deltaTime = self.clock.tick(100) / 1000.0 #frame rate is 100 FPS, deltaTime is the time between frames in seconds
             self.level.run(deltaTime)
+            inventory.draw(self.windowScreen) #draws the inventory on the screen
             #deltaTime is the time between frames
             pygame.display.update() #updates the display
 

@@ -91,3 +91,63 @@ class Tree(pygame.sprite.Sprite):
                 pos = (self.rect.centerx + random.randint(-10,10), self.rect.top + random.randint(-10,10))  # spawn slightly around top
                 velocity = (random.uniform(-50,50), random.uniform(50,120))
                 Particle(pos, leafSurf, particlesGroup, z=self.z, duration=1500, velocity=velocity)
+
+class Crop(pygame.sprite.Sprite):
+    def __init__(self, pos, cropName, groups):
+        super().__init__(groups)
+        self.cropName = cropName
+        self.growthStages = self.loadGrowthStages(cropName) # load images for growth stages
+        self.stage = 0 # start at the first growth stage
+        self.image = self.growthStages[self.stage] # set initial image
+        self.rect = self.image.get_rect(topleft=pos) # position of the crop
+        self.growthTime = GROW_SPEED[cropName] # total time to fully grow in seconds
+        self.elapsedTime = 0 # time since last growth stage
+        self.fullyGrown = False
+
+    def loadGrowthStages(self, cropName):
+        stages = []
+        folderPath = f"coursework/gameData/graphics/overlay/{cropName}"
+        
+        if not os.path.exists(folderPath):
+            print(f"Folder for {cropName} not found")
+            return stages
+
+        # get all png files in the folder and sort them numerically
+        files = [f for f in os.listdir(folderPath) if f.endswith('.png')] # e.g., ['0.png', '1.png', '2.png']
+        files.sort(key=lambda x: int(os.path.splitext(x)[0]))  # sorts by 0,1,2,3,5
+
+        for fileName in files:
+            img = pygame.image.load(os.path.join(folderPath, fileName)).convert_alpha() #load the image
+            stages.append(img)
+
+        return stages
+    
+    def update(self, deltaTime):
+        if self.fullyGrown:
+            return
+        self.elapsedTime += deltaTime 
+
+        if self.elapsedTime >= self.growthTime and self.stage < len(self.growthStages) - 1: # time to grow
+            self.stage += 1 # move to the next growth stage
+            self.image = self.growthStages[self.stage] # update the image to the new stage
+            self.elapsedTime = 0 # reset elapsed time for next stage
+
+            if self.stage == len(self.growthStages) - 1: # if it's the last stage
+                self.fullyGrown = True 
+
+class SoilTile(pygame.sprite.Sprite):
+    def __init__(self, pos, groups, untiledImage, tilledImage):
+        super().__init__(groups)
+        self.untiledImage = untiledImage
+        self.tilledImage = tilledImage
+        self.image = self.untiledImage
+        self.rect = self.image.get_rect(topleft=pos)
+        self.tilled = False
+        self.z = LAYERS['ground'] #ensure soil is always below the player
+
+    def till(self):
+        self.image = self.tilledImage
+        self.tilled = True
+
+    def water(self):
+        pass

@@ -3,6 +3,7 @@ import os
 from settings import *
 from support import *
 from timer import Timer
+from inventory import Inventory
 
 class Player(pygame.sprite.Sprite): #inherits from the sprite class
     def __init__(self, pos, group, collisionSprites, level): #we need the position and the group of the sprite
@@ -37,6 +38,9 @@ class Player(pygame.sprite.Sprite): #inherits from the sprite class
             'seed switch': Timer(200) #200 milliseconds for the tool switch
         }
         
+        #inventory
+        self.inventory = Inventory(size=10)  # Inventory with 20 slots
+
         #tools
         self.tools = ['hoe', 'axe', 'wateringCan'] #list of the tools the player can use  
         self.toolIndex = 0
