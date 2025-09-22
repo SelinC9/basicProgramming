@@ -24,13 +24,11 @@ class Inventory:
                     loaded_img = pygame.image.load(item['imagePath']).convert_alpha()
                     item['image'] = pygame.transform.scale(loaded_img, (32, 32))
                 except Exception as e:
-                    print(f"Failed to load image for {key}: {e}")
                     item['image'] = pygame.Surface((32, 32))
                     item['image'].fill((255, 0, 0))
 
     def addItem(self, itemKey, quantity=1):
         if itemKey not in ITEMS:
-            print(f"Item '{itemKey}' not found in items")
             return False
 
         # copy the item dictionary to avoid mutating the original

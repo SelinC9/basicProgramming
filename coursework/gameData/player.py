@@ -82,17 +82,22 @@ class Player(pygame.sprite.Sprite): #inherits from the sprite class
         print('tool use')
         # hoe the soil
         if self.selectedTool == 'hoe':
-            self.level.tillSoil(self.targetPos)
+            self.level.tillSoil(self)
 
-        # cut down tree
-        elif self.selectedTool == 'axe':
-            for tree in self.level.trees:
-                if tree.rect.collidepoint(self.targetPos):
-                    tree.chop(self.level.particles) # calls the chop method of the tree
-
-        # water the soil
         elif self.selectedTool == 'wateringCan':
-            self.level.waterSoil(self.targetPos)
+            tileX, tileY = self.level._getTileInFront(self)
+            targetPos = (tileX * TILE_SIZE + TILE_SIZE // 2, tileY * TILE_SIZE + TILE_SIZE // 2)
+            self.level.waterSoil(targetPos)
+
+        # cut down tree - FIXED: Use tile coordinates instead of screen coordinates
+        elif self.selectedTool == 'axe':
+            tileX, tileY = self.level._getTileInFront(self)
+            self.level.chopTree(tileX, tileY)
+       
+        # water the soil
+        elif self.selectedTool == 'seed':
+            if self.selectedCrop:
+                self.level.plantCrop(self.selectedCrop, self)
 
     def getTargetPos(self):
     # Map the player's status to a direction for tool offset
