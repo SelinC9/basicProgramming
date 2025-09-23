@@ -2,52 +2,53 @@ import pygame
 from settings import *
 
 class Inventory:
-    def __init__(self, size=10):
-        self.size = size  # max number of items
-        self.items = []  # list of items
-        self.selectedIndex = 0  # current selected slot
-        self.visible = False  # whether the inventory UI is shown
+    def __init__(self, size=10, level=None):
+        self.size = size
+        self.items = []
+        self.selectedIndex = 0
+        self.visible = False
+        self.level = level
 
-        # load slot images
         self.slotImage = pygame.image.load("coursework\\gameData\\assets\\inventory\\slot.png").convert_alpha()
-        self.slotImage = pygame.transform.scale(self.slotImage, (40, 40))  # adjust size
+        self.slotImage = pygame.transform.scale(self.slotImage, (40, 40))
         self.selectedImage = pygame.image.load("coursework\\gameData\\assets\\inventory\\selected.png").convert_alpha()
         self.selectedImage = pygame.transform.scale(self.selectedImage, (44, 44))
 
-        # font for item quantity
         self.font = pygame.font.Font("coursework\\gameData\\assets\\fonts\\Pixellari.ttf", 18)
 
-        # safely load item images now that pygame is initialized
         for key, item in ITEMS.items():
             if 'imagePath' in item:
                 try:
-                    loaded_img = pygame.image.load(item['imagePath']).convert_alpha()
-                    item['image'] = pygame.transform.scale(loaded_img, (32, 32))
-                except Exception as e:
+                    loadedImg = pygame.image.load(item['imagePath']).convert_alpha()
+                    item['image'] = pygame.transform.scale(loadedImg, (32, 32))
+                except Exception:
                     item['image'] = pygame.Surface((32, 32))
                     item['image'].fill((255, 0, 0))
 
-    def addItem(self, itemKey, quantity=1):
-        if itemKey not in ITEMS:
+    def addItem(self, itemKey, quantity=1, icon=None):
+        if itemKey not in ITEMS and icon is None:
+            print(f"Item {itemKey} does not exist!")
             return False
 
-        # copy the item dictionary to avoid mutating the original
-        itemData = ITEMS[itemKey].copy()
-
-        # store quantity for stackable items or materials
-        itemData['quantity'] = quantity
-
-        # stackable check
         for i in self.items:
-            if i['name'] == itemData['name'] and 'quantity' in i:
+            if i['name'] == itemKey:
                 i['quantity'] += quantity
                 return True
 
         if len(self.items) < self.size:
+            itemData = {
+                'name': itemKey,
+                'quantity': quantity,
+                'image': icon if icon else ITEMS[itemKey].get('image', pygame.Surface((32, 32)))
+            }
+            if itemData['image'] is None:
+                itemData['image'] = pygame.Surface((32, 32))
+                itemData['image'].fill((255, 0, 0))
             self.items.append(itemData)
             return True
 
-        return False  # inventory full
+        print("Inventory full!")
+        return False
 
     def removeItem(self, index, quantity=1):
         if index < len(self.items):
@@ -66,29 +67,25 @@ class Inventory:
         self.selectedIndex = (self.selectedIndex - 1) % self.size
 
     def useSelectedItem(self):
-        if self.selectedIndex < len(self.items):
-            item = self.items[self.selectedIndex]
-            print(f"Using {item['name']} ({item['type']})")
+        if self.selectedIndex >= len(self.items):
+            return
+        item = self.items[self.selectedIndex]
 
-            if item['type'] == "seed":
-                # get player position from the level
-                playerPos = self.level.player.get_tile_pos()  # assuming you have this method
-                # plant crop at that position
-                self.level.plant_crop(item['name'], playerPos)
-                # remove one seed from inventory
-                self.removeItem(self.selectedIndex, 1)
-                print(f"Planted {item['name']} at {playerPos}")
+        print(f"Using {item['name']} ({item['type']})")
 
-            elif item['type'] == "tool":
-                print(f"Swinging {item['name']}")
-                # you can add tool effects here later
+        if item['type'] == "seed" and self.level:
+            tileX, tileY = self.level.getTileInFront(self.level.player)
+            self.level.plantCrop(item['name'], self.level.player)
+            self.removeItem(self.selectedIndex, 1)
 
-            elif item['type'] == "material":
-                print(f"Used {item['name']}")
+        elif item['type'] == "tool":
+            print(f"Swinging {item['name']}")
 
+        elif item['type'] == "material":
+            print(f"Used {item['name']}")
 
     def toggle(self):
-        self.visible = not self.visible # toggle visibility
+        self.visible = not self.visible
 
     def draw(self, surface):
         if not self.visible:
@@ -98,46 +95,37 @@ class Inventory:
         startY = SCREEN_HEIGHT - 60
         slotWidth = 40
         slotHeight = 40
-        slotSpacing = 10  # space between slots
+        slotSpacing = 10
         totalWidth = self.size * (slotWidth + slotSpacing) - slotSpacing
 
         panelPadding = 10
-        panelRect = pygame.Rect(startX - panelPadding, startY - panelPadding, totalWidth + 2*panelPadding, slotHeight + 2*panelPadding)
+        panelRect = pygame.Rect(startX - panelPadding, startY - panelPadding,
+                                totalWidth + 2*panelPadding, slotHeight + 2*panelPadding)
 
-        # draw shadow first
         shadowOffset = 5
         shadowRect = panelRect.copy()
         shadowRect.topleft = (panelRect.x + shadowOffset, panelRect.y + shadowOffset)
         sShadow = pygame.Surface((shadowRect.width, shadowRect.height), pygame.SRCALPHA)
-        sShadow.fill((0, 0, 0, 100))  # black shadow with transparency
+        sShadow.fill((0, 0, 0, 100))
         surface.blit(sShadow, shadowRect.topleft)
 
-        # draw light brown panel
         s = pygame.Surface((panelRect.width, panelRect.height), pygame.SRCALPHA)
-        s.fill((210, 180, 140, 200))  # light brown with transparency
+        s.fill((210, 180, 140, 200))
         surface.blit(s, panelRect.topleft)
-
-        pygame.draw.rect(surface, (160, 120, 70), panelRect, 2)  # darker brown border
+        pygame.draw.rect(surface, (160, 120, 70), panelRect, 2)
 
         for i in range(self.size):
             slotRect = pygame.Rect(startX + i*(slotWidth + slotSpacing), startY, slotWidth, slotHeight)
 
-            # draw slot shadow
-            slotShadow = pygame.Surface((slotWidth, slotHeight), pygame.SRCALPHA)
-            slotShadow.fill((0, 0, 0, 60))  # subtle shadow
-            surface.blit(slotShadow, (slotRect.x + 2, slotRect.y + 2))  # offset slightly
-
-            # draw selected slot
             if i == self.selectedIndex:
                 surface.blit(self.selectedImage, (slotRect.x - 2, slotRect.y - 2))
             else:
                 surface.blit(self.slotImage, slotRect.topleft)
 
-            # draw item image
             if i < len(self.items):
                 surface.blit(self.items[i]['image'], (slotRect.x + 4, slotRect.y + 4))
 
-                # draw quantity if exists
                 if 'quantity' in self.items[i] and self.items[i]['quantity'] > 1:
                     qtyText = self.font.render(str(self.items[i]['quantity']), True, (255, 255, 255))
-                    surface.blit(qtyText, (slotRect.right - qtyText.get_width(), slotRect.bottom - qtyText.get_height()))
+                    surface.blit(qtyText, (slotRect.right - qtyText.get_width(),
+                                           slotRect.bottom - qtyText.get_height()))

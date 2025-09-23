@@ -4,6 +4,9 @@ import random
 from settings import *
 from timer import Timer
 
+ZOOM_X = SCREEN_WIDTH / 1280
+ZOOM_Y = SCREEN_HEIGHT / 720
+
 class Generic(pygame.sprite.Sprite):
     def __init__(self, pos, surf, groups, z=LAYERS['main']):
         super().__init__(groups)
@@ -18,15 +21,13 @@ class Wildflower(Generic):
         self.hitbox = self.rect.copy().inflate(-20, -self.rect.height * 0.9)
 
 class Particle(pygame.sprite.Sprite):
-    def __init__(self, pos, surf, velocity, duration=3000, z=LAYERS['abovePlayer']):
-        super().__init__()        
-        # Make sure the surface is properly scaled and has alpha
+    def __init__(self, pos, surf, groups, velocity, duration=3000, z=LAYERS['abovePlayer']):
+        super().__init__(groups)
         self.originalImage = surf.copy()
         self.image = self.originalImage.copy()
         self.rect = self.image.get_rect(center=pos)
         
-        # Use moderate speed - not too fast, not too slow
-        self.velocity = pygame.math.Vector2(velocity[0] * 0.2, velocity[1] * 0.2)
+        self.velocity = pygame.math.Vector2(velocity[0] * 0.2 * ZOOM_X, velocity[1] * 0.2 * ZOOM_Y)
         self.duration = duration
         self.startTime = pygame.time.get_ticks()
         self.z = z
@@ -36,14 +37,11 @@ class Particle(pygame.sprite.Sprite):
         if not self.alive:
             return
             
-        # Move particle with moderate speed
         self.rect.x += self.velocity.x * deltaTime * 20
         self.rect.y += self.velocity.y * deltaTime * 20
 
-        # Calculate fade effect
         elapsed = pygame.time.get_ticks() - self.startTime
         if elapsed < self.duration:
-            # Smooth fade out from 255 to 0 alpha
             alpha = 255 - (elapsed * 255 // self.duration)
             self.image = self.originalImage.copy()
             self.image.set_alpha(max(0, alpha))
@@ -60,50 +58,72 @@ class Tree(pygame.sprite.Sprite):
         self.z = LAYERS['main']
 
         self.name = name
-        self.health = 5
+        self.maxHealth = 5
+        self.health = self.maxHealth
         self.alive = True
-        stumpPath = os.path.join("coursework","gameData","graphics","stump","0.png")
-        self.stumpSurf = pygame.image.load(stumpPath).convert_alpha()
+        self.isChopped = False  # track if tree is already chopped
+        self.stumpSurf = pygame.image.load(os.path.join("coursework","gameData","graphics","stump","0.png")).convert_alpha()
+        self.stumpSurf = pygame.transform.scale(self.stumpSurf, (int(self.stumpSurf.get_width() * ZOOM_X), 
+                                                                 int(self.stumpSurf.get_height() * ZOOM_Y)))
         self.invulTimer = Timer(200)
         self.playerAdded = playerAdded
-        
-    def chop(self, particlesGroup):
-        if self.invulTimer.active:
-            return
+        self.hitboxSprite = None
+
+    def chop(self, particlesGroup, allSpritesGroup, player=None):
+        if self.invulTimer.active or not self.alive or self.isChopped:
+            return False
 
         self.health -= 1
+        print(f"Tree health: {self.health}")
         self.invulTimer.activate()
-        self.spawnLeaves(particlesGroup)
+        self.spawnLeaves(particlesGroup, allSpritesGroup)
 
-        if self.health <= 0:
+        if self.health <= 0 and not self.isChopped:
             self.alive = False
-            self.image = self.stumpSurf
-            if hasattr(self, 'hitboxSprite'):
-                self.hitboxSprite.kill()
+            self.isChopped = True
 
-    def spawnLeaves(self, particlesGroup):
+            # Remove hitbox so player can walk over
+            if self.hitboxSprite:
+                self.hitboxSprite.kill()
+                self.hitboxSprite = None
+            self.hitbox = pygame.Rect(0, 0, 0, 0)
+
+            # Change image to stump
+            self.image = self.stumpSurf
+
+            # Give wood to player once
+            if player:
+                amount = random.randint(2, 3)
+                player.inventory.addItem('wood', amount)
+                print(f"Picked up wood: {amount}")
+
+        return True
+    
+    def spawnLeaves(self, particlesGroup, allSpritesGroup):
         leafFolder = os.path.join("coursework","gameData","graphics","leaves")
+        if not os.path.exists(leafFolder):
+            return
+            
         leafFiles = [f"{i}.png" for i in range(5)]
                 
         for _ in range(random.randint(5, 8)):
             leafPath = os.path.join(leafFolder, random.choice(leafFiles))
             
             if os.path.exists(leafPath):
-                # Load and scale leaf image to be more visible
                 leafSurf = pygame.image.load(leafPath).convert_alpha()
-                leafSurf = pygame.transform.scale(leafSurf, (32, 32))  # Make leaves larger
+                leafSurf = pygame.transform.scale(leafSurf, (int(32 * ZOOM_X), int(32 * ZOOM_Y)))
                 
-                # Position particles around the tree
-                pos = (self.rect.centerx + random.randint(-30, 30), 
-                       self.rect.centery + random.randint(-50, 0))
+                pos = (self.rect.centerx + random.randint(-30, 30) * ZOOM_X, 
+                       self.rect.centery + random.randint(-50, 0) * ZOOM_Y)
                 
-                # Moderate velocity for visible movement
                 velocity = (random.uniform(-35, 35), random.uniform(-80, -25))
-                particle = Particle(pos, leafSurf, velocity, duration=3000)
                 
-                # Add to both particles group and allSprites group
-                particlesGroup.add(particle)
-                
+                Particle(pos, leafSurf, [particlesGroup, allSpritesGroup], 
+                        velocity, duration=3000, z=LAYERS['abovePlayer'])
+
+    def update(self, deltaTime):
+        self.invulTimer.update()
+
 class Crop(pygame.sprite.Sprite):
     def __init__(self, pos, cropName, groups):
         super().__init__(groups)
@@ -128,6 +148,8 @@ class Crop(pygame.sprite.Sprite):
 
         for fileName in files:
             img = pygame.image.load(os.path.join(folderPath, fileName)).convert_alpha()
+            img = pygame.transform.scale(img, (int(img.get_width() * ZOOM_X), 
+                                            int(img.get_height() * ZOOM_Y)))
             stages.append(img)
 
         return stages
@@ -161,3 +183,18 @@ class SoilTile(pygame.sprite.Sprite):
 
     def water(self):
         pass
+
+class Item(Generic):
+    def __init__(self, pos, surf, groups, itemName):
+        super().__init__(pos, surf, groups)
+        self.pickup = True
+        self.itemName = itemName
+
+class Wood(Generic):
+    def __init__(self, pos, surf, groups):
+        super().__init__(pos, surf, groups, LAYERS['main'])
+        self.pickup = True
+        self.pickupKey = 'wood'
+        self.itemName = 'wood'
+        self.icon = pygame.transform.scale(surf, (32, 32))
+        self.hitbox = self.rect.copy().inflate(-self.rect.width * 0.5, -self.rect.height * 0.5)
