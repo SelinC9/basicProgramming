@@ -79,25 +79,23 @@ class Player(pygame.sprite.Sprite): #inherits from the sprite class
         self.boundary = rect.copy() #creates a copy of the rectangle
 
     def useTool(self):
-        print('tool use')
+        print(f'Using tool: {self.selectedTool}')
+        
+        # Get the target tile in front of player
+        tileX, tileY = self.level.getTileInFront(self)
+        print(f"Player status: {self.status}, Target tile: {tileX}, {tileY}")
+        
         # hoe the soil
         if self.selectedTool == 'hoe':
             self.level.tillSoil(self)
 
         elif self.selectedTool == 'wateringCan':
-            tileX, tileY = self.level._getTileInFront(self)
             targetPos = (tileX * TILE_SIZE + TILE_SIZE // 2, tileY * TILE_SIZE + TILE_SIZE // 2)
             self.level.waterSoil(targetPos)
 
-        # cut down tree - FIXED: Use tile coordinates instead of screen coordinates
         elif self.selectedTool == 'axe':
-            tileX, tileY = self.level._getTileInFront(self)
-            self.level.chopTree(tileX, tileY)
-       
-        # water the soil
-        elif self.selectedTool == 'seed':
-            if self.selectedCrop:
-                self.level.plantCrop(self.selectedCrop, self)
+            success = self.level.chopTree(tileX, tileY)
+            print(f"Axe chop successful: {success}")
 
     def getTargetPos(self):
     # Map the player's status to a direction for tool offset
@@ -258,17 +256,17 @@ class Player(pygame.sprite.Sprite): #inherits from the sprite class
         self.collision('vertical')
 
         if self.boundary:
-            half_w = self.rect.width / 2
-            half_h = self.rect.height / 2
-            min_x = self.boundary.left + half_w
-            max_x = self.boundary.right - half_w
-            min_y = self.boundary.top + half_h
-            max_y = self.boundary.bottom - half_h
+            halfW = self.rect.width / 2
+            halfH = self.rect.height / 2
+            minX = self.boundary.left + halfW
+            maxX = self.boundary.right - halfW
+            minY = self.boundary.top + halfH
+            maxY = self.boundary.bottom - halfH
 
-            if self.pos.x < min_x: self.pos.x = min_x
-            if self.pos.x > max_x: self.pos.x = max_x
-            if self.pos.y < min_y: self.pos.y = min_y
-            if self.pos.y > max_y: self.pos.y = max_y
+            if self.pos.x < minX: self.pos.x = minX
+            if self.pos.x > maxX: self.pos.x = maxX
+            if self.pos.y < minY: self.pos.y = minY
+            if self.pos.y > maxY: self.pos.y = maxY
 
             self.rect.center = (round(self.pos.x), round(self.pos.y))
             self.hitbox.center = self.rect.center
