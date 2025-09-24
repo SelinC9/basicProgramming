@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="20" height="15" tilewidth="16" tileheight="16" infinite="0" nextlayerid="9" nextobjectid="231">
+ <tileset firstgid="1" name="farm inside" tilewidth="16" tileheight="16" tilecount="60" columns="6">
+  <image source="../tilesets/farm inside.png" width="96" height="160"/>
+ </tileset>
+ <tileset firstgid="61" name="furniture" tilewidth="16" tileheight="16" tilecount="36" columns="6">
+  <image source="../tilesets/furniture.png" width="96" height="96"/>
+ </tileset>
+ <tileset firstgid="97" name="spring and summer objects" tilewidth="16" tileheight="16" tilecount="169" columns="13">
+  <image source="../tilesets/spring and summer objects.png" width="208" height="208"/>
+ </tileset>
+ <tileset firstgid="266" name="bedroom" tilewidth="16" tileheight="16" tilecount="48" columns="8">
+  <image source="../tilesets/bedroom.png" width="128" height="96"/>
+ </tileset>
+ <tileset firstgid="314" name="decorations" tilewidth="16" tileheight="16" tilecount="42" columns="6">
+  <image source="../tilesets/decorations.png" width="96" height="112"/>
+ </tileset>
+ <tileset firstgid="356" name="kitchen" tilewidth="16" tileheight="16" tilecount="108" columns="12">
+  <image source="../tilesets/kitchen.png" width="192" height="144"/>
+ </tileset>
+ <tileset firstgid="464" name="living room" tilewidth="16" tileheight="16" tilecount="117" columns="9">
+  <image source="../tilesets/living room.png" width="144" height="208"/>
+ </tileset>
+ <tileset firstgid="581" name="office" tilewidth="16" tileheight="16" tilecount="60" columns="6">
+  <image source="../tilesets/office.png" width="96" height="160"/>
+ </tileset>
+ <tileset firstgid="641" name="carpets" tilewidth="16" tileheight="16" tilecount="130" columns="13">
+  <image source="../tilesets/carpets.png" width="208" height="160"/>
+ </tileset>
+ <tileset firstgid="771" name="wall decorations" tilewidth="16" tileheight="16" tilecount="42" columns="6">
+  <image source="../tilesets/wall decorations.png" width="96" height="112"/>
+ </tileset>
+ <tileset firstgid="813" name="walls and floors" tilewidth="16" tileheight="16" tilecount="240" columns="10">
+  <image source="../tilesets/walls and floors.png" width="160" height="384"/>
+ </tileset>
+ <tileset firstgid="1053" name="bathroom" tilewidth="16" tileheight="16" tilecount="65" columns="5">
+  <image source="../tilesets/bathroom.png" width="80" height="208"/>
+ </tileset>
+ <tileset firstgid="1118" name="doors" tilewidth="16" tileheight="16" tilecount="36" columns="6">
+  <image source="../tilesets/doors.png" width="96" height="96"/>
+ </tileset>
+ <layer id="2" name="wallpaper" width="20" height="15">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,37,38,38,38,38,38,38,38,38,38,38,38,976,977,977,977,977,978,0,
+0,43,44,44,44,44,44,44,44,44,44,44,44,986,987,987,987,987,988,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,49,50,50,50,50,50,50,52,0,0,49,50,50,50,50,50,50,52,0,
+0,55,56,56,56,56,56,56,57,0,0,55,56,56,56,56,56,56,57,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer id="3" name="floor" width="20" height="15">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,1,13,13,13,13,13,13,13,13,13,13,13,954,954,954,954,954,954,0,
+0,1,13,13,13,13,13,13,13,13,13,13,13,954,954,954,954,954,954,0,
+0,1,13,13,13,13,13,13,13,13,13,13,13,954,954,954,954,954,954,0,
+0,1,13,13,13,13,13,13,13,13,13,13,13,954,954,954,954,954,954,0,
+0,0,0,0,0,0,0,0,0,13,13,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,13,13,0,0,0,0,0,0,0,0,0,
+0,1,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,2,0,
+0,1,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,2,0,
+0,1,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,2,0,
+0,1,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,2,0,
+0,1,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,8,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer id="5" name="window" width="20" height="15">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,65,0,0,0,65,0,0,0,65,0,0,0,65,0,0,0,65,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer id="7" name="wall details" width="20" height="15">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,9,0,0,12,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,9,0,0,12,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <objectgroup id="6" name="furniture" opacity="0.9">
+  <object id="21" gid="71" x="128" y="32" width="16" height="16"/>
+  <object id="22" gid="284" x="48" y="64" width="16" height="16"/>
+  <object id="23" gid="285" x="64" y="64" width="16" height="16"/>
+  <object id="24" gid="292" x="48" y="80" width="16" height="16"/>
+  <object id="25" gid="293" x="64" y="80" width="16" height="16"/>
+  <object id="26" gid="289" x="80" y="64" width="16" height="16"/>
+  <object id="27" gid="302" x="112" y="48" width="16" height="16"/>
+  <object id="28" gid="310" x="112" y="64" width="16" height="16"/>
+  <object id="29" gid="303" x="128" y="48" width="16" height="16"/>
+  <object id="30" gid="311" x="128" y="64" width="16" height="16"/>
+  <object id="35" gid="314" x="16" y="32" width="16" height="16"/>
+  <object id="36" gid="320" x="16" y="48" width="16" height="16"/>
+  <object id="37" gid="322" x="96" y="64" width="16" height="16"/>
+  <object id="38" gid="316" x="96" y="48" width="16" height="16"/>
+  <object id="39" gid="473" x="176" y="64" width="16" height="16"/>
+  <object id="41" gid="464" x="176" y="48" width="16" height="16"/>
+  <object id="43" gid="537" x="16" y="160" width="16" height="16"/>
+  <object id="44" gid="546" x="16" y="176" width="16" height="16"/>
+  <object id="45" gid="555" x="16" y="192" width="16" height="16"/>
+  <object id="51" gid="531" x="48" y="144" width="16" height="16"/>
+  <object id="52" gid="540" x="48" y="160" width="16" height="16"/>
+  <object id="53" gid="538" x="80" y="160" width="16" height="16"/>
+  <object id="54" gid="547" x="80" y="176" width="16" height="16"/>
+  <object id="55" gid="556" x="80" y="192" width="16" height="16">
+   <properties>
+    <property name="interactable" type="bool" value="true"/>
+    <property name="objectType" value="couch3"/>
+    <property name="trigger" value="sit"/>
+   </properties>
+  </object>
+  <object id="63" gid="435" x="176" y="176" width="16" height="16"/>
+  <object id="64" gid="447" x="176" y="192" width="16" height="16"/>
+  <object id="89" gid="338" x="288" y="224" width="16" height="16"/>
+  <object id="106" gid="593" x="16" y="80" width="16" height="16"/>
+  <object id="107" gid="599" x="16" y="96" width="16" height="16"/>
+  <object id="108" gid="612" x="16" y="80" width="16" height="16"/>
+  <object id="109" gid="613" x="32" y="96" width="16" height="16"/>
+  <object id="110" gid="607" x="32" y="80" width="16" height="16"/>
+  <object id="111" gid="621" x="144" y="48" width="16" height="16"/>
+  <object id="112" gid="622" x="160" y="48" width="16" height="16"/>
+  <object id="113" gid="627" x="144" y="64" width="16" height="16"/>
+  <object id="114" gid="628" x="160" y="64" width="16" height="16"/>
+  <object id="115" gid="647" x="128" y="80" width="16" height="16"/>
+  <object id="116" gid="649" x="176" y="80" width="16" height="16"/>
+  <object id="119" gid="648" x="144" y="80" width="16" height="16"/>
+  <object id="120" gid="648" x="160" y="80" width="16" height="16"/>
+  <object id="121" gid="660" x="128" y="96" width="16" height="16"/>
+  <object id="122" gid="661" x="144" y="96" width="16" height="16"/>
+  <object id="123" gid="661" x="160" y="96" width="16" height="16"/>
+  <object id="124" gid="662" x="176" y="96" width="16" height="16"/>
+  <object id="127" gid="642" x="48" y="176" width="16" height="16"/>
+  <object id="128" gid="641" x="32" y="176" width="16" height="16"/>
+  <object id="129" gid="654" x="32" y="192" width="16" height="16"/>
+  <object id="130" gid="655" x="48" y="192" width="16" height="16"/>
+  <object id="131" gid="643" x="64" y="176" width="16" height="16"/>
+  <object id="132" gid="656" x="64" y="192" width="16" height="16"/>
+  <object id="133" gid="543" x="48" y="176" width="16" height="16"/>
+  <object id="134" gid="552" x="48" y="192" width="16" height="16"/>
+  <object id="135" gid="796" x="96" y="128" width="16" height="16"/>
+  <object id="137" gid="787" x="224" y="32" width="16" height="16"/>
+  <object id="138" gid="787" x="32" y="32" width="16" height="16"/>
+  <object id="139" gid="787" x="288" y="32" width="16" height="16"/>
+  <object id="144" gid="1080" x="272" y="64" width="16" height="16"/>
+  <object id="145" gid="1081" x="288" y="64" width="16" height="16"/>
+  <object id="146" gid="1086" x="288" y="80" width="16" height="16"/>
+  <object id="147" gid="1085" x="272" y="80" width="16" height="16"/>
+  <object id="148" gid="1088" x="240" y="32" width="16" height="16"/>
+  <object id="149" gid="1093" x="240" y="48" width="16" height="16"/>
+  <object id="150" gid="1098" x="240" y="64" width="16" height="16"/>
+  <object id="151" gid="1056" x="288" y="96" width="16" height="16"/>
+  <object id="152" gid="1061" x="288" y="112" width="16" height="16"/>
+  <object id="153" gid="1064" x="208" y="64" width="16" height="16"/>
+  <object id="154" gid="1069" x="208" y="80" width="16" height="16"/>
+  <object id="159" gid="1104" x="208" y="48" width="16" height="16"/>
+  <object id="160" gid="1109" x="208" y="64" width="16" height="16"/>
+  <object id="162" gid="1112" x="208" y="48" width="16" height="16"/>
+  <object id="163" gid="318" x="144" y="64" width="16" height="16"/>
+  <object id="164" gid="324" x="144" y="80" width="16" height="16"/>
+  <object id="165" gid="341" x="48" y="176" width="16" height="16"/>
+  <object id="166" gid="336" x="256" y="224" width="16" height="16"/>
+  <object id="171" gid="620" x="112" y="144" width="16" height="16"/>
+  <object id="172" gid="626" x="112" y="160" width="16" height="16"/>
+  <object id="173" gid="423" x="176" y="160" width="16" height="16"/>
+  <object id="174" gid="411" x="176" y="144" width="16" height="16"/>
+  <object id="175" gid="424" x="192" y="160" width="16" height="16"/>
+  <object id="176" gid="412" x="192" y="144" width="16" height="16"/>
+  <object id="177" gid="425" x="272" y="160" width="16" height="16"/>
+  <object id="178" gid="413" x="272" y="144" width="16" height="16"/>
+  <object id="179" gid="424" x="224" y="160" width="16" height="16"/>
+  <object id="180" gid="412" x="224" y="144" width="16" height="16"/>
+  <object id="181" gid="424" x="240" y="160" width="16" height="16"/>
+  <object id="182" gid="412" x="240" y="144" width="16" height="16"/>
+  <object id="183" gid="403" x="256" y="144" width="16" height="16"/>
+  <object id="184" gid="415" x="256" y="160" width="16" height="16"/>
+  <object id="185" gid="379" x="208" y="144" width="16" height="16"/>
+  <object id="186" gid="391" x="208" y="160" width="16" height="16"/>
+  <object id="187" gid="450" x="288" y="160" width="16" height="16"/>
+  <object id="189" gid="366" x="208" y="128" width="16" height="16"/>
+  <object id="190" gid="442" x="224" y="192" width="16" height="16"/>
+  <object id="191" gid="443" x="240" y="192" width="16" height="16"/>
+  <object id="192" gid="454" x="224" y="208" width="16" height="16"/>
+  <object id="193" gid="455" x="240" y="208" width="16" height="16"/>
+  <object id="194" gid="440" x="256" y="208" width="16" height="16"/>
+  <object id="195" gid="428" x="256" y="192" width="16" height="16"/>
+  <object id="197" gid="428" x="256" y="176" width="16" height="16"/>
+  <object id="198" gid="441" x="208" y="208" width="16" height="16"/>
+  <object id="199" gid="429" x="208" y="192" width="16" height="16"/>
+  <object id="200" gid="441" x="208" y="192" width="16" height="16"/>
+  <object id="201" gid="429" x="208" y="176" width="16" height="16"/>
+  <object id="203" gid="355" x="240" y="192" width="16" height="16"/>
+  <object id="204" gid="355" x="224" y="192" width="16" height="16"/>
+  <object id="219" gid="1138" x="144" y="224" width="16" height="16"/>
+  <object id="220" gid="1144" x="144" y="240" width="16" height="16"/>
+  <object id="196" gid="440" x="256" y="192" width="16" height="16"/>
+ </objectgroup>
+ <objectgroup id="8" name="collisons" visible="0">
+  <object id="226" x="48" y="48" width="32" height="32">
+   <properties>
+    <property name="interactable" type="bool" value="true"/>
+    <property name="objectType" value="bed"/>
+    <property name="trigger" value="sleep"/>
+   </properties>
+  </object>
+  <object id="228" x="16" y="160" width="16" height="32">
+   <properties>
+    <property name="interactable" type="bool" value="true"/>
+    <property name="objectType" value="couch"/>
+    <property name="trigger" value="sit"/>
+   </properties>
+  </object>
+  <object id="229" x="80" y="160" width="16" height="32">
+   <properties>
+    <property name="interactable" type="bool" value="true"/>
+    <property name="objectType" value="couch1"/>
+    <property name="trigger" value="sit"/>
+   </properties>
+  </object>
+  <object id="230" x="176" y="48" width="16" height="16">
+   <properties>
+    <property name="interactable" type="bool" value="true"/>
+    <property name="objectType" value="couch2"/>
+    <property name="trigger" value="sit"/>
+   </properties>
+  </object>
+  <object id="207" x="32" y="80" width="16" height="16">
+   <properties>
+    <property name="interactable" type="bool" value="true"/>
+    <property name="objectType" value="couch3"/>
+    <property name="trigger" value="sit"/>
+   </properties>
+  </object>
+  <object id="210" x="208" y="176" width="16" height="16">
+   <properties>
+    <property name="interactable" type="bool" value="true"/>
+    <property name="objectType" value="chair4"/>
+    <property name="trigger" value="sit"/>
+   </properties>
+  </object>
+  <object id="211" x="208" y="192" width="16" height="16">
+   <properties>
+    <property name="interactable" type="bool" value="true"/>
+    <property name="objectType" value="chair3"/>
+    <property name="trigger" value="sit"/>
+   </properties>
+  </object>
+  <object id="213" x="256" y="192" width="16" height="16">
+   <properties>
+    <property name="interactable" type="bool" value="true"/>
+    <property name="objectType" value="chair1"/>
+    <property name="trigger" value="sit"/>
+   </properties>
+  </object>
+  <object id="217" x="256" y="128" width="16" height="32">
+   <properties>
+    <property name="interactable" type="bool" value="true"/>
+    <property name="objectType" value="fridge"/>
+    <property name="trigger" value="store"/>
+   </properties>
+  </object>
+  <object id="218" x="208" y="144" width="16" height="16">
+   <properties>
+    <property name="interactable" type="bool" value="true"/>
+    <property name="objectType" value="oven"/>
+    <property name="trigger" value="cook"/>
+   </properties>
+  </object>
+  <object id="212" x="256" y="176" width="16" height="16">
+   <properties>
+    <property name="interactable" type="bool" value="true"/>
+    <property name="objectType" value="chair2"/>
+    <property name="trigger" value="sit"/>
+   </properties>
+  </object>
+  <object id="214" x="208" y="64" width="16" height="16">
+   <properties>
+    <property name="interactable" type="bool" value="true"/>
+    <property name="objectType" value="toilet"/>
+    <property name="trigger" value="sit"/>
+   </properties>
+  </object>
+  <object id="222" x="144" y="208" width="16" height="32">
+   <properties>
+    <property name="destination" value="myfarm"/>
+    <property name="objectType" value="door"/>
+    <property name="trigger" value="onPlayerTouch"/>
+   </properties>
+  </object>
+ </objectgroup>
+ <layer id="1" name="Tile Layer 1" width="20" height="15">
+  <data encoding="csv">
+3,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,6,
+9,0,0,0,0,0,0,0,0,0,0,0,875,0,0,0,0,0,0,12,
+9,0,0,0,0,0,0,0,0,0,0,0,875,0,0,0,0,0,0,12,
+9,0,0,0,0,0,0,0,0,0,0,0,875,0,0,0,0,0,0,12,
+9,0,0,0,0,0,0,0,0,0,0,0,875,0,0,0,0,0,0,12,
+9,0,0,0,0,0,0,0,0,0,0,0,875,0,0,0,0,0,0,12,
+9,0,0,0,0,0,0,0,0,0,0,0,875,0,0,0,0,0,0,12,
+9,16,16,16,16,16,16,16,16,0,0,16,16,16,16,16,16,16,16,12,
+9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,12,
+9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,12,
+9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,12,
+9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,12,
+9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,12,
+9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,12,
+27,16,16,16,16,16,16,16,16,0,16,16,16,16,16,16,16,16,16,30
+</data>
+ </layer>
+</map>
