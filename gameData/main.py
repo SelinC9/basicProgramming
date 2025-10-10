@@ -15,22 +15,14 @@ class MainGame:
         self.level = Level()
 
         # Load and scale background image
-        self.backgroundImage = pygame.image.load(
-            "graphics/background/0.png"
-        ).convert_alpha()
-
+        self.backgroundImage = pygame.image.load("graphics/background/0.png").convert_alpha()
         self.backgroundImage = pygame.transform.scale(
             self.backgroundImage, (SCREEN_WIDTH, SCREEN_HEIGHT)
         )
 
         # Load fonts
-        self.font = pygame.font.Font(
-            "assets/fonts/Pixellari.ttf", 18
-        )   
-
-        self.smallFont = pygame.font.Font(
-            "assets/fonts/Pixellari.ttf", 40
-        )
+        self.font = pygame.font.Font("assets/fonts/Pixellari.ttf", 120)
+        self.smallFont = pygame.font.Font("assets/fonts/Pixellari.ttf", 40)
 
     def menu(self):
         while True:
@@ -40,24 +32,25 @@ class MainGame:
             titleText = self.font.render("Witherford", True, (255, 255, 255))
             self.windowScreen.blit(
                 titleText,
-                (
-                    SCREEN_WIDTH // 2 - titleText.get_width() // 2,
-                    SCREEN_HEIGHT // 2 - titleText.get_height() // 2 - 50,
-                ),
+                (SCREEN_WIDTH // 2 - titleText.get_width() // 2,
+                 SCREEN_HEIGHT // 2 - titleText.get_height() // 2 - 50),
             )
 
             mousePos = pygame.mouse.get_pos()
 
             # Buttons
-            choice = self.drawButton("New Game", SCREEN_HEIGHT // 2 + 50, mousePos, highlightColor=(150, 200, 255), defaultColor=(100, 149, 245))
+            choice = self.drawButton("New Game", SCREEN_HEIGHT // 2 + 50, mousePos,
+                                     highlightColor=(150, 200, 255), defaultColor=(100, 149, 245))
             if choice == "clicked":
                 return "new"
 
-            choice = self.drawButton("Load Game", SCREEN_HEIGHT // 2 + 100, mousePos, highlightColor=(150, 200, 255), defaultColor=(100, 149, 245))
+            choice = self.drawButton("Load Game", SCREEN_HEIGHT // 2 + 100, mousePos,
+                                     highlightColor=(150, 200, 255), defaultColor=(100, 149, 245))
             if choice == "clicked":
                 return "load"
 
-            choice = self.drawButton("Press Escape to Exit", SCREEN_HEIGHT // 2 + 150, mousePos, highlightColor=(255, 100, 100), defaultColor=(200, 60, 60))
+            choice = self.drawButton("Press Escape to Exit", SCREEN_HEIGHT // 2 + 150, mousePos,
+                                     highlightColor=(255, 100, 100), defaultColor=(200, 60, 60))
             if choice == "clicked":
                 pygame.quit()
                 sys.exit()
@@ -68,9 +61,7 @@ class MainGame:
                     pygame.quit()
                     sys.exit()
                 elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_RETURN:
-                        return
-                    elif event.key == pygame.K_ESCAPE:
+                    if event.key == pygame.K_ESCAPE:
                         pygame.quit()
                         sys.exit()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -91,11 +82,12 @@ class MainGame:
 
         if buttonRect.collidepoint(mousePos):
             pygame.draw.rect(self.windowScreen, highlightColor, buttonRect.inflate(20, 10))
+            return "hover"
         else:
             pygame.draw.rect(self.windowScreen, defaultColor, buttonRect.inflate(20, 10))
 
         self.windowScreen.blit(buttonText, buttonRect)
-        return "hover" if buttonRect.collidepoint(mousePos) else "idle"
+        return "idle"
 
     def checkButtonClick(self, text, yPos, mousePos):
         buttonText = self.smallFont.render(text, True, (255, 255, 255))
@@ -122,6 +114,13 @@ class MainGame:
 
             deltaTime = self.clock.tick(100) / 1000.0  # Frame delta in seconds
             self.level.run(deltaTime)
+
+            # Handle tree chopping
+            for tree in self.level.trees:
+                if self.level.player.selectedTool == 'axe' and getattr(self.level.player, 'timers', None):
+                    if self.level.player.timers['tool use'].active and self.level.player.rect.colliderect(tree.rect):
+                        tree.chop(self.level.particles, self.level.allSprites, self.level.player)
+
             inventory.draw(self.windowScreen)
             pygame.display.update()
 
