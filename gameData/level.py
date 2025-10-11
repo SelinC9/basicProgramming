@@ -5,96 +5,90 @@ from settings import *
 from sprites import *
 from overlay import Overlay
 
-ZOOM_X = SCREEN_WIDTH / 1280
-ZOOM_Y = SCREEN_HEIGHT / 720
-
 class Level:
     def __init__(self):
-        self.displaySurface = pygame.display.get_surface()
+        self.displaySurface = pygame.display.get_surface() #main display surface
 
         self.untiledSoil = pygame.transform.smoothscale(
-            pygame.image.load('graphics/soil/untiled.png').convert_alpha(),
-            (int(TILE_SIZE * ZOOM_X), int(TILE_SIZE * ZOOM_Y))
+            pygame.image.load('graphics/soil/untiled.png').convert_alpha(), #load and scale soil images
+            (int(TILE_SIZE * ZOOM_X), int(TILE_SIZE * ZOOM_Y)) # scale size
         )
-        self.tilledSoilImage = pygame.transform.smoothscale(
+        self.tilledSoilImage = pygame.transform.smoothscale(    
             pygame.image.load('graphics/soil/tilled.png').convert_alpha(),
             (int(TILE_SIZE * ZOOM_X), int(TILE_SIZE * ZOOM_Y))
-        )
+        ) # scale size
 
         # sprite groups
-        self.allSprites = CameraGroup(pygame.Rect(0, 0, 0, 0))
-        self.soilTiles = pygame.sprite.Group()
-        self.collisionSprites = pygame.sprite.Group()
-        self.crops = pygame.sprite.Group()
-        self.trees = pygame.sprite.Group()
-        self.particles = pygame.sprite.Group()
-        self.itemsGroup = pygame.sprite.Group()
+        self.allSprites = CameraGroup() #camera group for all sprites
+        self.soilTiles = pygame.sprite.Group() #group for soil tiles 
+        self.collisionSprites = pygame.sprite.Group() #group for collision
+        self.crops = pygame.sprite.Group() #group for crops
+        self.trees = pygame.sprite.Group() #group for trees
+        self.particles = pygame.sprite.Group() #group for particles
+        self.itemsGroup = pygame.sprite.Group() #group for items
 
         # wood surface (fallback if missing)
         try:
             woodPath = "graphics/items/wood.png"
-            woodSurf = pygame.image.load(woodPath).convert_alpha()
-            self.woodSurf = pygame.transform.scale(woodSurf, (int(32 * ZOOM_X), int(32 * ZOOM_Y)))
+            woodSurf = pygame.image.load(woodPath).convert_alpha() #load wood image
+            self.woodSurf = pygame.transform.scale(woodSurf, (int(32 * ZOOM_X), int(32 * ZOOM_Y))) #scale wood image
         except Exception:
-            surf = pygame.Surface((int(32 * ZOOM_X), int(32 * ZOOM_Y)), pygame.SRCALPHA)
-            surf.fill((0, 0, 0, 0))
-            self.woodSurf = surf
+            surf = pygame.Surface((int(32 * ZOOM_X), int(32 * ZOOM_Y)), pygame.SRCALPHA) #create empty surface
+            surf.fill((0, 0, 0, 0)) #make it transparent
+            self.woodSurf = surf #use empty surface if loading fails
 
         # map
-        self.tmxData = load_pygame('graphics/world/myfarm.tmx')
-        mapWidth = self.tmxData.width * self.tmxData.tilewidth
-        mapHeight = self.tmxData.height * self.tmxData.tileheight
-        self.mapRect = pygame.Rect(0, 0, mapWidth, mapHeight)
-        self.allSprites.mapRect = self.mapRect
+        self.tmxData = load_pygame('graphics/world/myfarm.tmx') #load tmx map
+        mapWidth = self.tmxData.width * self.tmxData.tilewidth #in pixels
+        mapHeight = self.tmxData.height * self.tmxData.tileheight #in pixels
+        self.mapRect = pygame.Rect(0, 0, mapWidth, mapHeight) #rectangle for map size
+        self.allSprites.mapRect = self.mapRect #set map rect for camera group
 
         self.playerAdded = False
         self.setup()
 
-    def getTileInFront(self, player):
-        tileX = player.rect.centerx // TILE_SIZE
-        tileY = player.rect.centery // TILE_SIZE
-        direction = player.status
-        if "Idle" in direction:
-            direction = direction.replace("Idle", "")
-        for tool in ["Axe", "Water", "Hoe"]:
-            if direction.endswith(tool):
+    def getTileInFront(self, player): #get tile coordinates in front of player
+        tileX = player.rect.centerx // TILE_SIZE #get tile coordinates
+        tileY = player.rect.centery // TILE_SIZE #get tile coordinates
+        direction = player.status #player direction
+        if "Idle" in direction: 
+            direction = direction.replace("Idle", "") #remove idle
+        for tool in ["Axe", "Water", "Hoe"]: #remove tool from direction
+            if direction.endswith(tool): 
                 direction = direction[:-len(tool)]
                 break
         if direction == "up":
-            tileY -= 1
+            tileY = tileY - 1
         if direction == "down":
-            tileY += 1
+            tileY = tileY + 1
         if direction == "left":
-            tileX -= 1
+            tileX = tileX - 1
         if direction == "right":
-            tileX += 1
+            tileX = tileX + 1
         return int(tileX), int(tileY)
 
     def tillSoil(self, player):
-        tileX, tileY = self.getTileInFront(player)
+        tileX, tileY = self.getTileInFront(player) #get tile in front of player
         for tile in self.soilTiles:
-            if (tile.rect.x // TILE_SIZE, tile.rect.y // TILE_SIZE) == (tileX, tileY):
-                if not tile.tilled:
+            if (tile.rect.x // TILE_SIZE, tile.rect.y // TILE_SIZE) == (tileX, tileY): #found tile
+                if not tile.tilled: 
                     tile.till()
                 return
-        pos = (tileX * TILE_SIZE * ZOOM_X, tileY * TILE_SIZE * ZOOM_Y)
-        soilTile = SoilTile(pos,
-                            groups=[self.allSprites, self.soilTiles],
-                            untiledImage=self.untiledSoil,
-                            tilledImage=self.tilledSoilImage)
+        pos = (tileX * TILE_SIZE, tileY * TILE_SIZE) #position of new soil tile
+        soilTile = SoilTile(pos, groups=[self.allSprites, self.soilTiles], untiledImage=self.untiledSoil, tilledImage=self.tilledSoilImage) #create new soil tile
         soilTile.till()
 
-    def waterSoil(self, targetPos):
-        for tile in self.soilTiles:
+    def waterSoil(self, targetPos): #targetPos is pixel position
+        for tile in self.soilTiles: #check all soil tiles
             if tile.rect.collidepoint(targetPos):
                 tile.water()
                 break
 
     def chopTree(self, tileX, tileY):
-        # More precise targeting - only check the exact tile
-        targetPos = (tileX * TILE_SIZE * ZOOM_X, tileY * TILE_SIZE * ZOOM_Y)
-        targetRect = pygame.Rect(targetPos, (TILE_SIZE * ZOOM_X, TILE_SIZE * ZOOM_Y))
-        
+        # More precise targeting so only check the exact tile
+        targetPos = (tileX * TILE_SIZE, tileY * TILE_SIZE)
+        targetRect = pygame.Rect(targetPos, (TILE_SIZE, TILE_SIZE))
+                
         closestTree = None
         minDistance = float('inf')
         
@@ -104,68 +98,76 @@ class Level:
                 treeCenter = tree.rect.center
                 targetCenter = targetRect.center
                 distance = ((treeCenter[0] - targetCenter[0]) ** 2 + 
-                           (treeCenter[1] - targetCenter[1]) ** 2) ** 0.5
+                        (treeCenter[1] - targetCenter[1]) ** 2) ** 0.5
                 
                 if distance < minDistance:
                     closestTree = tree
                     minDistance = distance
         
         if closestTree:
-            wasChopped = closestTree.chop(self.particles, self.allSprites, self.player)
-            if wasChopped and closestTree.isChopped:
+            # Call chop with the correct parameter names
+            wasChopped = closestTree.chop(
+                particlesGroup=self.particles,
+                allSpritesGroup=self.allSprites, 
+                player=self.player
+            )
+            
+            if wasChopped and closestTree.isChopped: #only if actually chopped
                 self.trees.remove(closestTree)
             return True
+        
         return False
-    
+
     def isPlantable(self, tilePos):
         for crop in self.crops:
-            if (crop.rect.x // TILE_SIZE, crop.rect.y // TILE_SIZE) == tilePos:
+            if (crop.rect.x // TILE_SIZE, crop.rect.y // TILE_SIZE) == tilePos: #already a crop here
                 return False
         return True
 
     def plantCrop(self, cropName, player):
-        tileX, tileY = self.getTileInFront(player)
+        tileX, tileY = self.getTileInFront(player) #get tile in front of player
         for tile in self.soilTiles:
-            if (tile.rect.x // TILE_SIZE, tile.rect.y // TILE_SIZE) == (tileX, tileY):
-                if tile.tilled and self.isPlantable((tileX, tileY)):
-                    cropPos = (tileX * TILE_SIZE * ZOOM_X, tileY * TILE_SIZE * ZOOM_Y)
+            if (tile.rect.x // TILE_SIZE, tile.rect.y // TILE_SIZE) == (tileX, tileY): #found tile
+                if tile.tilled and self.isPlantable((tileX, tileY)): #can plant here
+                    cropPos = (tileX * TILE_SIZE, tileY * TILE_SIZE) #position of crop
                     Crop(cropPos, cropName, [self.allSprites, self.crops])
                 return
 
     def setup(self):
-        mapWidth = self.tmxData.width * self.tmxData.tilewidth
-        mapHeight = self.tmxData.height * self.tmxData.tileheight
+        mapWidth = self.tmxData.width * self.tmxData.tilewidth #in pixels
+        mapHeight = self.tmxData.height * self.tmxData.tileheight #in pixels
         groundSurf = pygame.image.load("graphics/world/myfarm.png").convert_alpha()
-        groundSurf = pygame.transform.smoothscale(groundSurf, (int(mapWidth * ZOOM_X), int(mapHeight * ZOOM_Y)))
-        Generic((0, 0), groundSurf, [self.allSprites], z=LAYERS['ground'])
-
+        groundSurf = pygame.transform.smoothscale(groundSurf, (int(mapWidth * ZOOM_X), int(mapHeight * ZOOM_Y))) #scale to fit
+        Generic((0, 0), groundSurf, [self.allSprites], z=LAYERS['ground']) #ground layer
+ 
         self.spawnObstacles()
 
         spawnPoint = None
         for obj in self.tmxData.objects:
-            if getattr(obj, "objectType", None) == "playerSpawn":
-                spawnPoint = (obj.x * ZOOM_X, obj.y * ZOOM_Y)
+            if getattr(obj, "objectType", None) == "playerSpawn": #find player spawn point
+                spawnPoint = (obj.x * ZOOM_X, obj.y * ZOOM_Y) #scale position
                 break
         if not spawnPoint:
-            spawnPoint = (400 * ZOOM_X, 300 * ZOOM_Y)
+            spawnPoint = (400 * ZOOM_X, 300 * ZOOM_Y) #default spawn if none found
 
         from player import Player
-        self.player = Player(spawnPoint, [self.allSprites], self.collisionSprites, self)
-        self.player.setMapBounds(self.mapRect)
+        self.player = Player(spawnPoint, [self.allSprites], self.collisionSprites, self) #add player
+        self.player.setMapBounds(self.mapRect) #set map boundaries
         self.overlay = Overlay(self.player)
 
     def spawnObstacles(self):
-        for x, y, surf in self.tmxData.get_layer_by_name("fence").tiles():
+        for x, y, surf in self.tmxData.get_layer_by_name("fence").tiles(): #fence layer
             if surf:
-                pos = (x * self.tmxData.tilewidth * ZOOM_X, y * self.tmxData.tileheight * ZOOM_Y)
-                Generic(pos, surf, [self.allSprites, self.collisionSprites])
+                scaled_surf = pygame.transform.scale(surf, (int(surf.get_width() * ZOOM_X), int(surf.get_height() * ZOOM_Y))) #scale surface
+                pos = (x * self.tmxData.tilewidth * ZOOM_X, y * self.tmxData.tileheight * ZOOM_Y) #position
+                Generic(pos, scaled_surf, [self.allSprites, self.collisionSprites]) #add to groups
         
         # Get all tree objects
         treeObjects = []
         for obj in self.tmxData.get_layer_by_name("tree"):
             treeObjects.append(obj)
         
-        # Automatic clustering - group pixels that are close together
+        #group pixels that are close together
         treeGroups = []
         usedObjects = set()
         
@@ -188,7 +190,7 @@ class Level:
                     if j in usedObjects:
                         continue
                     
-                    # Check if this object is close to ANY object in the current cluster
+                    # Check if this object is close to any object in the current cluster
                     for clusterObj in currentCluster:
                         distance = ((clusterObj.x - otherObj.x) ** 2 + 
                                 (clusterObj.y - otherObj.y) ** 2) ** 0.5
@@ -199,7 +201,7 @@ class Level:
                             clusterChanged = True
                             break
             
-            # Only create trees from clusters that look like actual trees (8-16 pixels)
+            # Only create trees from clusters that look like actual trees
             if 8 <= len(currentCluster) <= 16:
                 treeGroups.append(currentCluster)
         
@@ -208,7 +210,8 @@ class Level:
             self.createTreeFromGroup(cluster)
         
         for obj in self.tmxData.get_layer_by_name("rock"):
-            Generic((obj.x * ZOOM_X, obj.y * ZOOM_Y), obj.image, [self.allSprites])
+            scaled_surf = pygame.transform.scale(obj.image, (int(obj.image.get_width() * ZOOM_X), int(obj.image.get_height() * ZOOM_Y)))
+            Generic((obj.x * ZOOM_X, obj.y * ZOOM_Y), scaled_surf, [self.allSprites])
             rockHitbox = pygame.Surface((int(16 * ZOOM_X), int(16 * ZOOM_Y)), pygame.SRCALPHA)
             Generic((obj.x * ZOOM_X, obj.y * ZOOM_Y), rockHitbox, [self.collisionSprites])
                 
@@ -241,24 +244,27 @@ class Level:
             yOffset = obj.y - minY + padding // 2
             treeSurface.blit(obj.image, (xOffset, yOffset))
         
+        # Scale the tree surface
+        scaled_tree_surface = pygame.transform.scale(treeSurface, (int(width * ZOOM_X), int(height * ZOOM_Y)))
+        
         # Create the tree sprite at the calculated center
         tree = Tree(
-            pos=(centerX * ZOOM_X - width * ZOOM_X / 2, centerY * ZOOM_Y - height * ZOOM_Y / 2),
-            surf=treeSurface,
+            pos=(centerX * ZOOM_X - (width * ZOOM_X) / 2, centerY * ZOOM_Y - (height * ZOOM_Y) / 2),
+            surf=scaled_tree_surface,
             groups=[self.allSprites, self.trees],
             name='tree',
             playerAdded=self.playerAdded
         )
         
-        # Create ONE collision hitbox for the entire tree
-        trunkWidth = int(tree.rect.width)  # Full tree width
-        trunkHeight = int(tree.rect.height)  # Full tree height
+        # Create one collision hitbox for the entire tree
+        trunkWidth = int(tree.rect.width)
+        trunkHeight = int(tree.rect.height)
         
         # Calculate hitbox position - centered on the tree
         hitboxX = tree.rect.centerx - trunkWidth // 2
         hitboxY = tree.rect.centery - trunkHeight // 2
         
-        # Create ONE hitbox sprite (invisible collision only)
+        # Create one hitbox sprite (invisible collision only)
         hitboxSurf = pygame.Surface((trunkWidth, trunkHeight))
         hitboxSurf.fill((0, 0, 0))
         hitboxSurf.set_alpha(0)  # Completely invisible
@@ -266,7 +272,7 @@ class Level:
         hitboxSprite = Generic(
             (hitboxX, hitboxY),
             hitboxSurf,
-            [self.collisionSprites],  # Only collision group, not visible
+            [self.collisionSprites],
             z=LAYERS['main']
         )
         tree.hitboxSprite = hitboxSprite
@@ -278,30 +284,30 @@ class Level:
         self.trees.update(deltaTime)
         self.itemsGroup.update(deltaTime)
 
-        keys = pygame.key.get_pressed()
-        for sprite in [s for s in self.allSprites if getattr(s, 'pickup', False)]:
-            if self.player.rect.colliderect(sprite.rect) and keys[pygame.K_f]:
-                added = self.player.inventory.addItem(sprite.pickupKey, 1, getattr(sprite, 'icon', None))
+        keys = pygame.key.get_pressed() #get key states
+        for sprite in [s for s in self.allSprites if getattr(s, 'pickup', False)]: #only items that can be picked up
+            if self.player.rect.colliderect(sprite.rect) and keys[pygame.K_f]: #player touching item and pressing F
+                added = self.player.inventory.addItem(sprite.pickupKey, 1, getattr(sprite, 'icon', None)) #add to inventory
                 if added:
                     sprite.kill()
 
-        self.allSprites.customisedDraw(self.player)
+        self.allSprites.customisedDraw(self.player) #draw with camera
         self.overlay.display()
         self.player.inventory.draw(self.displaySurface)
 
 class CameraGroup(pygame.sprite.Group):
-    def __init__(self, mapRect):
+    def __init__(self):
         super().__init__()
-        self.mapRect = mapRect
-        self.offset = pygame.math.Vector2(0, 0)
-        self.displaySurface = pygame.display.get_surface()
+        self.mapRect = pygame.Rect(0, 0, 0, 0) #to be set later
+        self.offset = pygame.math.Vector2(0, 0) #camera offset
+        self.displaySurface = pygame.display.get_surface() #main display surface
 
     def customisedDraw(self, player):
-        self.offset.x = player.rect.centerx - SCREEN_WIDTH / 2
-        self.offset.y = player.rect.centery - SCREEN_HEIGHT / 2
-        self.offset.x = max(0, min(self.offset.x, self.mapRect.width - SCREEN_WIDTH))
-        self.offset.y = max(0, min(self.offset.y, self.mapRect.height - SCREEN_HEIGHT))
+        self.offset.x = player.rect.centerx - SCREEN_WIDTH / 2 #center camera on player
+        self.offset.y = player.rect.centery - SCREEN_HEIGHT / 2 #center camera on player
+        self.offset.x = max(0, min(self.offset.x, self.mapRect.width - SCREEN_WIDTH)) #clamp to map boundaries
+        self.offset.y = max(0, min(self.offset.y, self.mapRect.height - SCREEN_HEIGHT)) #clamp to map boundaries
         
-        for sprite in sorted(self.sprites(), key=lambda spr: spr.z):
-            offsetPos = sprite.rect.topleft - self.offset
-            self.displaySurface.blit(sprite.image, offsetPos)
+        for sprite in sorted(self.sprites(), key=lambda spr: spr.z): #draw in order of z
+            offsetPos = sprite.rect.topleft - self.offset #apply offset
+            self.displaySurface.blit(sprite.image, offsetPos) #draw sprite
