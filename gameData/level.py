@@ -165,14 +165,6 @@ class Level:
         for obj in self.tmxData.get_layer_by_name("tree"):
             treeObjects.append(obj)
         
-        print(f"Total tree pixels: {len(treeObjects)}")
-        
-        # Save tree positions to a file so we can analyze them
-        with open("tree_positions.txt", "w") as f:
-            for obj in treeObjects:
-                f.write(f"{obj.x},{obj.y}\n")
-        print("Tree positions saved to tree_positions.txt")
-        
         # Automatic clustering - group pixels that are close together
         treeGroups = []
         usedObjects = set()
@@ -211,17 +203,9 @@ class Level:
             if 8 <= len(currentCluster) <= 16:
                 treeGroups.append(currentCluster)
         
-        print(f"Created {len(treeGroups)} tree clusters")
-        
         # Create tree sprites for each valid cluster
-        for i, cluster in enumerate(treeGroups):
-            print(f"Creating tree {i+1} with {len(cluster)} pixels")
+        for cluster in treeGroups:
             self.createTreeFromGroup(cluster)
-        
-        # Report any ungrouped pixels (potential issues)
-        ungrouped = len(treeObjects) - len(usedObjects)
-        if ungrouped > 0:
-            print(f"Warning: {ungrouped} tree pixels were not grouped into trees!")
         
         for obj in self.tmxData.get_layer_by_name("rock"):
             Generic((obj.x * ZOOM_X, obj.y * ZOOM_Y), obj.image, [self.allSprites])
@@ -270,52 +254,22 @@ class Level:
         trunkWidth = int(tree.rect.width)  # Full tree width
         trunkHeight = int(tree.rect.height)  # Full tree height
         
-        # Calculate hitbox position - centered at bottom of tree
+        # Calculate hitbox position - centered on the tree
         hitboxX = tree.rect.centerx - trunkWidth // 2
         hitboxY = tree.rect.centery - trunkHeight // 2
         
-        # Create ONE hitbox sprite
+        # Create ONE hitbox sprite (invisible collision only)
         hitboxSurf = pygame.Surface((trunkWidth, trunkHeight))
-        hitboxSurf.fill((255, 0, 0))  # Solid red
+        hitboxSurf.fill((0, 0, 0))
+        hitboxSurf.set_alpha(0)  # Completely invisible
         
         hitboxSprite = Generic(
             (hitboxX, hitboxY),
             hitboxSurf,
-            [self.collisionSprites, self.allSprites],
+            [self.collisionSprites],  # Only collision group, not visible
             z=LAYERS['main']
         )
         tree.hitboxSprite = hitboxSprite
-        
-        print(f"Created tree at ({tree.rect.x}, {tree.rect.y}) with hitbox at ({hitboxX}, {hitboxY})")
-        
-    def debugCollision(self):
-        # Check if player is colliding with any collision sprites
-        collisionCount = 0
-        collisionDetails = []
-        
-        for sprite in self.collisionSprites:
-            if hasattr(sprite, 'hitbox'):
-                if sprite.hitbox.colliderect(self.player.hitbox):
-                    collisionCount += 1
-                    spriteType = type(sprite).__name__
-                    collisionDetails.append(f"{spriteType} at {sprite.hitbox}")
-        
-        # Display collision info on screen
-        font = pygame.font.Font(None, 36)
-        text = font.render(f"Collisions: {collisionCount}", True, (255, 255, 255))
-        self.displaySurface.blit(text, (10, 50))
-        
-        # Display player position
-        posText = font.render(f"Player: ({int(self.player.hitbox.x)}, {int(self.player.hitbox.y)})", True, (255, 255, 255))
-        self.displaySurface.blit(posText, (10, 90))
-        
-        # Print detailed collision info to console
-        if collisionCount > 0:
-            print(f"=== COLLISION DETECTED ===")
-            print(f"Player at: {self.player.hitbox}")
-            for detail in collisionDetails:
-                print(detail)
-            print("==========================")
 
     def run(self, deltaTime):
         self.allSprites.update(deltaTime)
@@ -334,9 +288,6 @@ class Level:
         self.allSprites.customisedDraw(self.player)
         self.overlay.display()
         self.player.inventory.draw(self.displaySurface)
-        
-        # DEBUG: Check collisions
-        self.debugCollision()
 
 class CameraGroup(pygame.sprite.Group):
     def __init__(self, mapRect):
@@ -354,9 +305,3 @@ class CameraGroup(pygame.sprite.Group):
         for sprite in sorted(self.sprites(), key=lambda spr: spr.z):
             offsetPos = sprite.rect.topleft - self.offset
             self.displaySurface.blit(sprite.image, offsetPos)
-        
-        # DEBUG: Draw player hitbox (green)
-        playerHitboxOffset = player.hitbox.topleft - self.offset
-        pygame.draw.rect(self.displaySurface, (0, 255, 0), 
-                        (playerHitboxOffset[0], playerHitboxOffset[1], 
-                         player.hitbox.width, player.hitbox.height), 2)

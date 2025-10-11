@@ -38,18 +38,23 @@ class Particle(pygame.sprite.Sprite):
         self.duration = duration
         self.startTime = pygame.time.get_ticks()
         self.z = z
-        print(f"Particle created at {pos} with velocity {velocity}")  # Debug
 
     def update(self, deltaTime):
-        self.rect.x += self.velocity.x * deltaTime * 20
-        self.rect.y += self.velocity.y * deltaTime * 20
+        # Convert deltaTime to seconds and add gravity effect
+        dtSeconds = deltaTime / 1000.0
+        
+        # Add slight gravity to make leaves fall naturally
+        self.velocity.y += 50 * dtSeconds  # Gravity effect
+        
+        self.rect.x += self.velocity.x * dtSeconds
+        self.rect.y += self.velocity.y * dtSeconds
+        
         elapsed = pygame.time.get_ticks() - self.startTime
         if elapsed < self.duration:
+            # Smooth fade out
             alpha = 255 - (elapsed * 255 // self.duration)
             self.image = self.originalImage.copy()
-            self.image.set_alpha(max(0, alpha))
-            # Debug: draw border to see particle bounds
-            # pygame.draw.rect(self.image, (255, 0, 0), self.image.get_rect(), 1)
+            self.image.set_alpha(alpha)
         else:
             self.kill()
 
@@ -100,11 +105,11 @@ class Tree(pygame.sprite.Sprite):
                     (int(stump.get_width() * ZOOM_X), int(stump.get_height() * ZOOM_Y))
                 )
                 return stump
-            except Exception as e:
-                print(f"Failed to load stump image: {e}")
+            except Exception:
+                # Fallback if loading fails
+                pass
         
         # Create a fallback stump surface
-        print("Creating fallback stump surface")
         fallback = pygame.Surface((int(32 * ZOOM_X), int(16 * ZOOM_Y)), pygame.SRCALPHA)
         fallback.fill((101, 67, 33))  # Brown color
         return fallback
@@ -153,61 +158,40 @@ class Tree(pygame.sprite.Sprite):
         return True
 
     def spawnLeaves(self, particlesGroup, allSpritesGroup):
-        print("Spawning leaves!")  # Debug
+        # Create visible leaf particles
+        leafColors = [
+            (34, 139, 34),    # Forest Green
+            (50, 205, 50),    # Lime Green
+            (60, 179, 113),   # Medium Sea Green
+            (46, 139, 87),    # Sea Green
+        ]
         
-        leafFolder = os.path.join("graphics", "leaves")
-        
-        # Create simple leaf surfaces if folder doesn't exist
-        leafSurfaces = []
-        
-        if os.path.exists(leafFolder):
-            leafFiles = [f"{i}.png" for i in range(5)]
-            for leafFile in leafFiles:
-                leafPath = os.path.join(leafFolder, leafFile)
-                if os.path.exists(leafPath):
-                    try:
-                        leafSurf = pygame.image.load(leafPath).convert_alpha()
-                        leafSurf = pygame.transform.scale(leafSurf, (int(24 * ZOOM_X), int(24 * ZOOM_Y)))
-                        leafSurfaces.append(leafSurf)
-                        print(f"Loaded leaf: {leafFile}")
-                    except pygame.error as e:
-                        print(f"Failed to load leaf image {leafPath}: {e}")
-        else:
-            print("Leaf folder not found, creating simple leaves")
-        
-        # If no leaf images, create simple colored circles
-        if not leafSurfaces:
-            colors = [(50, 168, 82), (60, 179, 113), (46, 139, 87), (34, 139, 34)]  # Different greens
-            for color in colors:
-                leafSurf = pygame.Surface((int(20 * ZOOM_X), int(20 * ZOOM_Y)), pygame.SRCALPHA)
-                pygame.draw.circle(leafSurf, color, (int(10 * ZOOM_X), int(10 * ZOOM_Y)), int(8 * ZOOM_X))
-                leafSurfaces.append(leafSurf)
-            print("Created fallback leaves")
-        
-        # Spawn more visible particles
-        numLeaves = random.randint(8, 12)  # More leaves
+        numLeaves = random.randint(10, 16)
         
         for i in range(numLeaves):
-            leafSurf = random.choice(leafSurfaces)
+            # Create leaf surface
+            leafSize = random.randint(12, 20)
+            leafSurf = pygame.Surface((leafSize, leafSize), pygame.SRCALPHA)
+            color = random.choice(leafColors)
             
-            # Spawn from different parts of the tree
-            pos_x = self.rect.centerx + random.randint(-self.rect.width//2, self.rect.width//2)
-            pos_y = self.rect.centery + random.randint(-self.rect.height//3, self.rect.height//3)
-            pos = (pos_x, pos_y)
+            # Draw leaf shape (simple oval)
+            pygame.draw.ellipse(leafSurf, color, (0, 0, leafSize, leafSize))
             
-            # Make leaves more visible with stronger movement
-            velocity_x = random.uniform(-40, 40)  # More horizontal movement
-            velocity_y = random.uniform(-60, -20)  # More upward movement
+            # Spawn position around the tree
+            posX = self.rect.centerx + random.randint(-self.rect.width//3, self.rect.width//3)
+            posY = self.rect.centery + random.randint(-self.rect.height//3, self.rect.height//3)
+            pos = (posX, posY)
             
-            # Longer duration and slower fade
-            duration = random.randint(1500, 3000)
+            # Natural leaf movement - mostly downward with some drift
+            velocityX = random.uniform(-60, 60)
+            velocityY = random.uniform(-40, 20)
             
-            try:
-                Particle(pos, leafSurf, [particlesGroup, allSpritesGroup], 
-                        (velocity_x, velocity_y), duration=duration, z=LAYERS['abovePlayer'])
-                print(f"Created leaf particle {i+1}")
-            except Exception as e:
-                print(f"Failed to create leaf particle: {e}")
+            # Varying durations for natural effect
+            duration = random.randint(1500, 2500)
+            
+            # Create particle
+            Particle(pos, leafSurf, [particlesGroup, allSpritesGroup], 
+                    (velocityX, velocityY), duration=duration, z=LAYERS['abovePlayer'])
 
 class Crop(pygame.sprite.Sprite):
     def __init__(self, pos, cropName, groups):
