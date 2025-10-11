@@ -32,9 +32,9 @@ class Level:
 
         # wood surface (fallback if missing)
         try:
-            wood_path = "graphics/items/wood.png"
-            wood_surf = pygame.image.load(wood_path).convert_alpha()
-            self.woodSurf = pygame.transform.scale(wood_surf, (int(32 * ZOOM_X), int(32 * ZOOM_Y)))
+            woodPath = "graphics/items/wood.png"
+            woodSurf = pygame.image.load(woodPath).convert_alpha()
+            self.woodSurf = pygame.transform.scale(woodSurf, (int(32 * ZOOM_X), int(32 * ZOOM_Y)))
         except Exception:
             surf = pygame.Surface((int(32 * ZOOM_X), int(32 * ZOOM_Y)), pygame.SRCALPHA)
             surf.fill((0, 0, 0, 0))
@@ -91,18 +91,32 @@ class Level:
                 break
 
     def chopTree(self, tileX, tileY):
-        targetArea = pygame.Rect(
-            tileX * TILE_SIZE * ZOOM_X - TILE_SIZE * ZOOM_X,
-            tileY * TILE_SIZE * ZOOM_Y - TILE_SIZE * ZOOM_Y,
-            TILE_SIZE * ZOOM_X * 3,
-            TILE_SIZE * ZOOM_Y * 3
-        )
+        # More precise targeting - only check the exact tile
+        targetPos = (tileX * TILE_SIZE * ZOOM_X, tileY * TILE_SIZE * ZOOM_Y)
+        targetRect = pygame.Rect(targetPos, (TILE_SIZE * ZOOM_X, TILE_SIZE * ZOOM_Y))
+        
+        closestTree = None
+        minDistance = float('inf')
+        
         for tree in self.trees:
-            if tree.rect.colliderect(targetArea) and tree.alive and not tree.isChopped:
-                tree.chop(self.particles, self.allSprites, self.player)
-                return True
+            if tree.alive and not tree.isChopped and tree.rect.colliderect(targetRect):
+                # Find the closest tree to the target center
+                treeCenter = tree.rect.center
+                targetCenter = targetRect.center
+                distance = ((treeCenter[0] - targetCenter[0]) ** 2 + 
+                           (treeCenter[1] - targetCenter[1]) ** 2) ** 0.5
+                
+                if distance < minDistance:
+                    closestTree = tree
+                    minDistance = distance
+        
+        if closestTree:
+            wasChopped = closestTree.chop(self.particles, self.allSprites, self.player)
+            if wasChopped and closestTree.isChopped:
+                self.trees.remove(closestTree)
+            return True
         return False
-
+    
     def isPlantable(self, tilePos):
         for crop in self.crops:
             if (crop.rect.x // TILE_SIZE, crop.rect.y // TILE_SIZE) == tilePos:
@@ -145,27 +159,163 @@ class Level:
             if surf:
                 pos = (x * self.tmxData.tilewidth * ZOOM_X, y * self.tmxData.tileheight * ZOOM_Y)
                 Generic(pos, surf, [self.allSprites, self.collisionSprites])
+        
+        # Get all tree objects
+        treeObjects = []
         for obj in self.tmxData.get_layer_by_name("tree"):
-            tree = Tree(
-                pos=(obj.x * ZOOM_X, obj.y * ZOOM_Y),
-                surf=obj.image,
-                groups=[self.allSprites, self.trees],
-                name=obj.name,
-                playerAdded=self.playerAdded
-            )
-            trunkW, trunkH = int(tree.rect.width * 0.2), int(tree.rect.height * 0.25)
-            hitboxSurf = pygame.Surface((trunkW, trunkH), pygame.SRCALPHA)
-            hitboxSprite = Generic(
-                (tree.rect.centerx - trunkW // 2, tree.rect.bottom - trunkH),
-                hitboxSurf,
-                [self.collisionSprites],
-                z=LAYERS['main']
-            )
-            tree.hitboxSprite = hitboxSprite
+            treeObjects.append(obj)
+        
+        print(f"Total tree pixels: {len(treeObjects)}")
+        
+        # Save tree positions to a file so we can analyze them
+        with open("tree_positions.txt", "w") as f:
+            for obj in treeObjects:
+                f.write(f"{obj.x},{obj.y}\n")
+        print("Tree positions saved to tree_positions.txt")
+        
+        # Automatic clustering - group pixels that are close together
+        treeGroups = []
+        usedObjects = set()
+        
+        # Sort objects by position to make clustering more efficient
+        sortedObjects = sorted(treeObjects, key=lambda obj: (obj.y, obj.x))
+        
+        for i, obj in enumerate(sortedObjects):
+            if i in usedObjects:
+                continue
+                
+            # Start a new cluster with this object
+            currentCluster = [obj]
+            usedObjects.add(i)
+            
+            # Look for nearby objects (within 32 pixels)
+            clusterChanged = True
+            while clusterChanged:
+                clusterChanged = False
+                for j, otherObj in enumerate(sortedObjects):
+                    if j in usedObjects:
+                        continue
+                    
+                    # Check if this object is close to ANY object in the current cluster
+                    for clusterObj in currentCluster:
+                        distance = ((clusterObj.x - otherObj.x) ** 2 + 
+                                (clusterObj.y - otherObj.y) ** 2) ** 0.5
+                        
+                        if distance < 32:  # 32 pixel radius
+                            currentCluster.append(otherObj)
+                            usedObjects.add(j)
+                            clusterChanged = True
+                            break
+            
+            # Only create trees from clusters that look like actual trees (8-16 pixels)
+            if 8 <= len(currentCluster) <= 16:
+                treeGroups.append(currentCluster)
+        
+        print(f"Created {len(treeGroups)} tree clusters")
+        
+        # Create tree sprites for each valid cluster
+        for i, cluster in enumerate(treeGroups):
+            print(f"Creating tree {i+1} with {len(cluster)} pixels")
+            self.createTreeFromGroup(cluster)
+        
+        # Report any ungrouped pixels (potential issues)
+        ungrouped = len(treeObjects) - len(usedObjects)
+        if ungrouped > 0:
+            print(f"Warning: {ungrouped} tree pixels were not grouped into trees!")
+        
         for obj in self.tmxData.get_layer_by_name("rock"):
             Generic((obj.x * ZOOM_X, obj.y * ZOOM_Y), obj.image, [self.allSprites])
             rockHitbox = pygame.Surface((int(16 * ZOOM_X), int(16 * ZOOM_Y)), pygame.SRCALPHA)
             Generic((obj.x * ZOOM_X, obj.y * ZOOM_Y), rockHitbox, [self.collisionSprites])
+                
+    def createTreeFromGroup(self, group):
+        if not group:
+            return
+        
+        # Calculate the bounding box that contains all objects
+        minX = min(obj.x for obj in group)
+        minY = min(obj.y for obj in group)
+        maxX = max(obj.x + (obj.width if hasattr(obj, 'width') else 16) for obj in group)
+        maxY = max(obj.y + (obj.height if hasattr(obj, 'height') else 16) for obj in group)
+        
+        # Add some padding to the bounding box
+        padding = 10
+        width = max(50, maxX - minX + padding)
+        height = max(70, maxY - minY + padding)
+        
+        # Calculate center position for the tree
+        centerX = minX + (maxX - minX) / 2
+        centerY = minY + (maxY - minY) / 2
+        
+        # Create a surface for the combined tree
+        treeSurface = pygame.Surface((width, height), pygame.SRCALPHA)
+        treeSurface.fill((0, 0, 0, 0))
+        
+        # Draw all objects onto the tree surface, centered
+        for obj in group:
+            xOffset = obj.x - minX + padding // 2
+            yOffset = obj.y - minY + padding // 2
+            treeSurface.blit(obj.image, (xOffset, yOffset))
+        
+        # Create the tree sprite at the calculated center
+        tree = Tree(
+            pos=(centerX * ZOOM_X - width * ZOOM_X / 2, centerY * ZOOM_Y - height * ZOOM_Y / 2),
+            surf=treeSurface,
+            groups=[self.allSprites, self.trees],
+            name='tree',
+            playerAdded=self.playerAdded
+        )
+        
+        # Create ONE collision hitbox for the entire tree
+        trunkWidth = int(tree.rect.width)  # Full tree width
+        trunkHeight = int(tree.rect.height)  # Full tree height
+        
+        # Calculate hitbox position - centered at bottom of tree
+        hitboxX = tree.rect.centerx - trunkWidth // 2
+        hitboxY = tree.rect.centery - trunkHeight // 2
+        
+        # Create ONE hitbox sprite
+        hitboxSurf = pygame.Surface((trunkWidth, trunkHeight))
+        hitboxSurf.fill((255, 0, 0))  # Solid red
+        
+        hitboxSprite = Generic(
+            (hitboxX, hitboxY),
+            hitboxSurf,
+            [self.collisionSprites, self.allSprites],
+            z=LAYERS['main']
+        )
+        tree.hitboxSprite = hitboxSprite
+        
+        print(f"Created tree at ({tree.rect.x}, {tree.rect.y}) with hitbox at ({hitboxX}, {hitboxY})")
+        
+    def debugCollision(self):
+        # Check if player is colliding with any collision sprites
+        collisionCount = 0
+        collisionDetails = []
+        
+        for sprite in self.collisionSprites:
+            if hasattr(sprite, 'hitbox'):
+                if sprite.hitbox.colliderect(self.player.hitbox):
+                    collisionCount += 1
+                    spriteType = type(sprite).__name__
+                    collisionDetails.append(f"{spriteType} at {sprite.hitbox}")
+        
+        # Display collision info on screen
+        font = pygame.font.Font(None, 36)
+        text = font.render(f"Collisions: {collisionCount}", True, (255, 255, 255))
+        self.displaySurface.blit(text, (10, 50))
+        
+        # Display player position
+        posText = font.render(f"Player: ({int(self.player.hitbox.x)}, {int(self.player.hitbox.y)})", True, (255, 255, 255))
+        self.displaySurface.blit(posText, (10, 90))
+        
+        # Print detailed collision info to console
+        if collisionCount > 0:
+            print(f"=== COLLISION DETECTED ===")
+            print(f"Player at: {self.player.hitbox}")
+            for detail in collisionDetails:
+                print(detail)
+            print("==========================")
 
     def run(self, deltaTime):
         self.allSprites.update(deltaTime)
@@ -184,6 +334,9 @@ class Level:
         self.allSprites.customisedDraw(self.player)
         self.overlay.display()
         self.player.inventory.draw(self.displaySurface)
+        
+        # DEBUG: Check collisions
+        self.debugCollision()
 
 class CameraGroup(pygame.sprite.Group):
     def __init__(self, mapRect):
@@ -197,6 +350,13 @@ class CameraGroup(pygame.sprite.Group):
         self.offset.y = player.rect.centery - SCREEN_HEIGHT / 2
         self.offset.x = max(0, min(self.offset.x, self.mapRect.width - SCREEN_WIDTH))
         self.offset.y = max(0, min(self.offset.y, self.mapRect.height - SCREEN_HEIGHT))
+        
         for sprite in sorted(self.sprites(), key=lambda spr: spr.z):
             offsetPos = sprite.rect.topleft - self.offset
             self.displaySurface.blit(sprite.image, offsetPos)
+        
+        # DEBUG: Draw player hitbox (green)
+        playerHitboxOffset = player.hitbox.topleft - self.offset
+        pygame.draw.rect(self.displaySurface, (0, 255, 0), 
+                        (playerHitboxOffset[0], playerHitboxOffset[1], 
+                         player.hitbox.width, player.hitbox.height), 2)

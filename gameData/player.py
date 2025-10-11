@@ -75,7 +75,6 @@ class Player(pygame.sprite.Sprite):
     def setMapBounds(self, rect):
         self.boundary = rect.copy()
 
-    # ---------------- TOOLS & SEEDS ----------------
     def useTool(self):
         tileX, tileY = self.level.getTileInFront(self)
         if self.selectedTool == 'hoe':
@@ -89,7 +88,6 @@ class Player(pygame.sprite.Sprite):
     def useSeed(self):
         self.level.plantCrop(self.selectedSeed, self)
 
-    # ---------------- INVENTORY ----------------
     def addItem(self, item, amount=1):
         if self.inventoryFull(): return False
         self.itemInventory[item] += amount
@@ -98,7 +96,6 @@ class Player(pygame.sprite.Sprite):
     def inventoryFull(self):
         return sum(self.itemInventory.values()) >= self.inventoryCapacity
 
-    # ---------------- ASSETS & ANIMATION ----------------
     def importAssets(self):
         characterPath = "graphics/character/"
         self.animations = {name:[] for name in [
@@ -119,7 +116,6 @@ class Player(pygame.sprite.Sprite):
                 self.frameIndex = 0
             self.image = self.animations[self.status][int(self.frameIndex)]
 
-    # ---------------- INPUT ----------------
     def input(self):
         keys = pygame.key.get_pressed()
         if not self.timers['tool use'].active:
@@ -178,27 +174,38 @@ class Player(pygame.sprite.Sprite):
         elif self.timers['tool use'].active:
             self.status = base + self.selectedTool.capitalize()
 
-    # ---------------- TIMERS ----------------
     def updateTimers(self):
         for timer in self.timers.values(): timer.update()
 
-    # ---------------- COLLISION & MOVE ----------------
-    def collision(self,direction):
+    def collision(self, direction):
+        collisionCount = 0  # Initialize the variable here
+        
         for sprite in self.collisionSprites.sprites():
-            if not hasattr(sprite,'hitbox'):
+            if not hasattr(sprite, 'hitbox'):
                 sprite.hitbox = sprite.rect.copy()
+            
             if sprite.hitbox.colliderect(self.hitbox):
-                if direction=='horizontal':
-                    if self.direction.x>0: self.hitbox.right = sprite.hitbox.left
-                    if self.direction.x<0: self.hitbox.left = sprite.hitbox.right
+                collisionCount += 1
+                if direction == 'horizontal':
+                    if self.direction.x > 0:  # moving right
+                        self.hitbox.right = sprite.hitbox.left
+                    if self.direction.x < 0:  # moving left
+                        self.hitbox.left = sprite.hitbox.right
                     self.rect.centerx = self.hitbox.centerx
                     self.pos.x = self.hitbox.centerx
-                if direction=='vertical':
-                    if self.direction.y>0: self.hitbox.bottom = sprite.hitbox.top
-                    if self.direction.y<0: self.hitbox.top = sprite.hitbox.bottom
+                    
+                if direction == 'vertical':
+                    if self.direction.y > 0:  # moving down
+                        self.hitbox.bottom = sprite.hitbox.top
+                    if self.direction.y < 0:  # moving up
+                        self.hitbox.top = sprite.hitbox.bottom
                     self.rect.centery = self.hitbox.centery
                     self.pos.y = self.hitbox.centery
-
+        
+        # Debug output
+        if collisionCount > 0:
+            print(f"Colliding with {collisionCount} sprites in {direction} direction")
+            
     def move(self, deltaTime):
         if self.direction.magnitude()>0:
             self.direction = self.direction.normalize()
@@ -218,7 +225,6 @@ class Player(pygame.sprite.Sprite):
             self.rect.center = (round(self.pos.x), round(self.pos.y))
             self.hitbox.center = self.rect.center
 
-    # ---------------- TARGET ----------------
     def getTargetPos(self):
         baseDir = 'down'
         if 'up' in self.status: baseDir='up'
@@ -227,7 +233,6 @@ class Player(pygame.sprite.Sprite):
         elif 'right' in self.status: baseDir='right'
         self.targetPos = pygame.math.Vector2(self.rect.center) + PLAYER_TOOL_OFFSET[baseDir]
 
-    # ---------------- UPDATE ----------------
     def update(self, deltaTime):
         self.input()
         self.move(deltaTime)
