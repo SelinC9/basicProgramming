@@ -266,30 +266,93 @@ class Crop(pygame.sprite.Sprite):
         self.growthTime = GROW_SPEED.get(cropName, 1000) #default 1000s
         self.elapsedTime = 0 #time since last growth
         self.fullyGrown = False #flag
+        self.z = LAYERS['crops']  # Use the 'crops' layer which is above soil
 
     def loadGrowthStages(self, cropName):
         stages = []
         folderPath = os.path.join("graphics", "overlay", cropName) #path to crop folder
+        print(f"Looking for crop folder: {folderPath}")
+        
         if not os.path.exists(folderPath): 
+            print(f"Crop folder not found: {folderPath}")
             return stages
-        files = [f for f in os.listdir(folderPath) if f.endswith('.png')] #only pngs
-        files.sort(key=lambda x: int(os.path.splitext(x)[0])) #sort numerically
-        for fileName in files: #load each image
-            img = pygame.image.load(os.path.join(folderPath, fileName)).convert_alpha() #load
-            img = pygame.transform.scale(img, (int(img.get_width() * ZOOM_X), int(img.get_height() * ZOOM_Y))) #scale
-            stages.append(img) 
+            
+        # Look for both .png and .PNG files
+        files = [f for f in os.listdir(folderPath) if f.lower().endswith('.png')] #both .png and .PNG
+        print(f"Found {len(files)} PNG files: {files}")
+        
+        if not files:
+            print(f"No PNG files found in: {folderPath}")
+            return stages
+            
+        # Sort files numerically (0.png, 1.png, 2.png, etc.)
+        try:
+            files.sort(key=lambda x: int(os.path.splitext(x)[0]))
+        except ValueError:
+            print(f"Warning: Could not sort files numerically. Using default sort.")
+            files.sort()
+            
+        print(f"Sorted files: {files}")
+        
+        # Only load stages 0-4 for growth (stage 5 is for harvesting)
+        growth_files = [f for f in files if int(os.path.splitext(f)[0]) <= 4]
+        
+        for fileName in growth_files: #load each image
+            try:
+                filePath = os.path.join(folderPath, fileName)
+                img = pygame.image.load(filePath).convert_alpha() #load
+                img = pygame.transform.scale(img, (int(img.get_width() * ZOOM_X), int(img.get_height() * ZOOM_Y))) #scale
+                stages.append(img)
+                print(f"Loaded crop stage {fileName}: {img.get_size()}")
+            except Exception as e:
+                print(f"Error loading crop image {fileName}: {e}")
+        
+        print(f"Successfully loaded {len(stages)} growth stages for {cropName}")
         return stages
 
     def update(self, deltaTime):
         if self.fullyGrown or not self.growthStages: 
             return
+            
         self.elapsedTime = self.elapsedTime + deltaTime #increment elapsed time
-        if self.elapsedTime >= self.growthTime and self.stage < len(self.growthStages) - 1:
+        
+        # Calculate time per stage (you have 5 growth stages: 0-4)
+        totalStages = len(self.growthStages)
+        timePerStage = self.growthTime / (totalStages - 1) if totalStages > 1 else self.growthTime
+        
+        # Grow to next stage when enough time has passed
+        if self.elapsedTime >= timePerStage and self.stage < totalStages - 1:
             self.stage = self.stage + 1
             self.image = self.growthStages[self.stage] #update image
             self.elapsedTime = 0
-            if self.stage == len(self.growthStages) - 1: 
+            print(f"{self.cropName} grew to stage {self.stage}/{totalStages - 1}")
+
+            # Stage 4 is fully grown (since you have growth stages 0-4)
+            if self.stage == totalStages - 1: 
                 self.fullyGrown = True
+                print(f"🎉 {self.cropName} is fully grown and ready to harvest!")
+
+    def harvest(self):
+        if self.fullyGrown:
+            # Load the harvested stage (stage 5) if it exists
+            harvested_image = self.loadHarvestedStage()
+            if harvested_image:
+                self.image = harvested_image
+                print(f"🌾 {self.cropName} harvested! Showing stage 5")
+            return True
+        return False
+
+    def loadHarvestedStage(self):
+        try:
+            folderPath = os.path.join("graphics", "overlay", self.cropName)
+            harvested_path = os.path.join(folderPath, "5.png")
+            if os.path.exists(harvested_path):
+                img = pygame.image.load(harvested_path).convert_alpha()
+                img = pygame.transform.scale(img, (int(img.get_width() * ZOOM_X), int(img.get_height() * ZOOM_Y)))
+                return img
+        except Exception as e:
+            print(f"Error loading harvested stage for {self.cropName}: {e}")
+        return None
 
 class SoilTile(pygame.sprite.Sprite):
     def __init__(self, pos, groups, untiledImage, tilledImage):

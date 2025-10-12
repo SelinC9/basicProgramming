@@ -72,6 +72,10 @@ class Player(pygame.sprite.Sprite):
         self.seedIndex = 0
         self.selectedSeed = self.seeds[self.seedIndex] # Start with first seed
 
+        self.inventory.addItem('kale', 5)
+        self.inventory.addItem('tomato', 3)
+        self.inventory.addItem('corn', 3)
+
         # Map boundaries
         self.boundary = None
         self.targetPos = pygame.math.Vector2(self.rect.center)
@@ -82,7 +86,8 @@ class Player(pygame.sprite.Sprite):
     def useTool(self):
         tileX, tileY = self.level.getTileInFront(self) # Get tile in front of player
         if self.selectedTool == 'hoe':
-            self.level.tillSoil(self) # Till soil at target position
+            if not self.level.harvestCrop(tileX, tileY): # Try to harvest first
+                self.level.tillSoil(self) # Till soil at target position
         elif self.selectedTool == 'wateringCan':
             target = (tileX*TILE_SIZE + TILE_SIZE//2, tileY*TILE_SIZE + TILE_SIZE//2)
             self.level.waterSoil(target) # Water soil at target position
@@ -272,7 +277,7 @@ class Player(pygame.sprite.Sprite):
                 self.frameIndex = 0
 
             # Switch tool
-            if keys[pygame.K_q] and not self.timers['tool switch'].active:
+            if keys[pygame.K_t] and not self.timers['tool switch'].active:
                 self.timers['tool switch'].activate()
                 self.toolIndex = (self.toolIndex + 1) % len(self.tools)
                 self.selectedTool = self.tools[self.toolIndex]

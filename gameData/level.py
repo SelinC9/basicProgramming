@@ -189,7 +189,29 @@ class Level:
                 if tile.tilled and self.isPlantable((tileX, tileY)): #can plant here
                     cropPos = (tileX * TILE_SIZE, tileY * TILE_SIZE) #position of crop
                     Crop(cropPos, cropName, [self.allSprites, self.crops])
-                return
+                    print(f"Planted {cropName} at ({tileX}, {tileY})")
+                    return True
+                else:
+                    if not tile.tilled:
+                        print(f"Cannot plant {cropName} - soil not tilled")
+                    else:
+                        print(f"Cannot plant {cropName} - already occupied")
+                    return False
+        print(f"No soil tile found at ({tileX}, {tileY})")
+        return False
+    
+    def harvestCrop(self, tileX, tileY):
+        targetPos = (tileX * TILE_SIZE, tileY * TILE_SIZE)
+        targetRect = pygame.Rect(targetPos, (TILE_SIZE, TILE_SIZE))
+        
+        for crop in self.crops:
+            if (crop.rect.colliderect(targetRect) and crop.fullyGrown):
+                crop.harvest()
+                success = self.player.inventory.addItem(crop.cropName, random.randint(1, 3))
+                if success:
+                    print(f"Harvested {crop.cropName}")
+                    return True
+        return False
 
     def setup(self):
         mapWidth = self.tmxData.width * self.tmxData.tilewidth #in pixels

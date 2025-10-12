@@ -35,6 +35,7 @@ LAYERS = {
     'water': 0,
     'ground': 1,
     'soil': 2,
+    'soil water': 3,
     'crops': 3,
     'main': 4,
     'abovePlayer': 5
@@ -55,86 +56,72 @@ ITEMS = {
     "artichoke": {
         "name": "Artichoke",
         "imagePath": "coursework/gameData/graphics/items/artichoke.png",
-        "type": "seed",
-        "growth_time": 60
+        "type": "seed"
     },
     "beans": {
         "name": "Beans",
         "imagePath": "coursework/gameData/graphics/items/beans.png",
-        "type": "seed",
-        "growth_time": 40
+        "type": "seed"
     },
     "beets": {
         "name": "Beets",
         "imagePath": "coursework/gameData/graphics/items/beets.png",
-        "type": "seed",
-        "growth_time": 50
+        "type": "seed"
     },
     "berries": {
         "name": "Berries",
         "imagePath": "coursework/gameData/graphics/items/berries.png",
-        "type": "seed",
-        "growth_time": 30
+        "type": "seed"
     },
     "corn": {
         "name": "Corn",
         "imagePath": "coursework/gameData/graphics/items/corn.png",
-        "type": "seed",
-        "growth_time": 70
+        "type": "seed"
     },
     "cranberries": {
         "name": "Cranberries",
         "imagePath": "coursework/gameData/graphics/items/cranberries.png",
-        "type": "seed",
-        "growth_time": 35
+        "type": "seed"
     },
     "hotpeppers": {
         "name": "Hot Peppers",
         "imagePath": "coursework/gameData/graphics/items/hotpeppers.png",
-        "type": "seed",
-        "growth_time": 45
+        "type": "seed"
     },
     "kale": {
         "name": "Kale",
         "imagePath": "coursework/gameData/graphics/items/kale.png",
-        "type": "seed",
-        "growth_time": 50
+        "type": "seed"
     },
     "melon": {
         "name": "Melon",
         "imagePath": "coursework/gameData/graphics/items/melon.png",
-        "type": "seed",
-        "growth_time": 80
+        "type": "seed"
     },
     "onion": {
         "name": "Onion",
         "imagePath": "coursework/gameData/graphics/items/onion.png",
-        "type": "seed",
-        "growth_time": 40
+        "type": "seed"
     },
     "parsnips": {
         "name": "Parsnips",
         "imagePath": "coursework/gameData/graphics/items/parsnips.png",
-        "type": "seed",
-        "growth_time": 35
+        "type": "seed"
     },
     "potatoes": {
         "name": "Potatoes",
         "imagePath": "coursework/gameData/graphics/items/potatoes.png",
-        "type": "seed",
-        "growth_time": 45
+        "type": "seed"
     },
     "pumpkin": {
         "name": "Pumpkin",
         "imagePath": "coursework/gameData/graphics/items/pumpkin.png",
-        "type": "seed",
-        "growth_time": 90
+        "type": "seed"
     },
     "tomato": {
         "name": "Tomato",
         "imagePath": "coursework/gameData/graphics/items/tomato.png",
-        "type": "seed",
-        "growth_time": 50
+        "type": "seed"
     },
 
     # Tools / Materials
@@ -163,20 +150,20 @@ ITEMS = {
 
 # GROW SPEEDS
 GROW_SPEED = {
-    'artichoke': 8,
-    'beans': 10,
-    'beets': 6,
-    'berries': 13,
-    'corn': 14,
-    'cranberries': 7,
-    'hotpeppers': 5,
-    'kale': 6,
-    'melon': 12,
-    'onion': 7,
-    'parsnips': 4,
-    'potatoes': 6,
-    'pumpkin': 13,
-    'tomato': 11
+    'beans': 11 * DAY_LENGTH,      # 11 days
+    'kale': 7 * DAY_LENGTH,        # 7 days
+    'parsnips': 5 * DAY_LENGTH,    # 5 days
+    'potatoes': 7 * DAY_LENGTH,    # 7 days
+    'berries': 9 * DAY_LENGTH,     # 9 days
+    'corn': 15 * DAY_LENGTH,       # 15 days
+    'hotPeppers': 6 * DAY_LENGTH,  # 6 days
+    'melon': 13 * DAY_LENGTH,      # 13 days
+    'tomato': 12 * DAY_LENGTH,     # 12 days
+    'artichoke': 9 * DAY_LENGTH,   # 9 days
+    'beets': 7 * DAY_LENGTH,       # 7 days
+    'cranberries': 8 * DAY_LENGTH, # 8 days
+    'pumpkin': 14 * DAY_LENGTH,    # 14 days
+    'onion': 7 * DAY_LENGTH,       # 7 days
 }
 
 # SALE PRICES

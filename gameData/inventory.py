@@ -55,30 +55,66 @@ class Inventory:
                 # For wood items, try to load the actual wood image
                 if itemKey == 'wood':
                     try:
-                        woodPath = "graphics/items/wood.png"
-                        woodImg = pygame.image.load(woodPath).convert_alpha()
-                        icon = pygame.transform.scale(woodImg, (32, 32))
+                        wood_path = "graphics/items/wood.png"
+                        wood_img = pygame.image.load(wood_path).convert_alpha()
+                        icon = pygame.transform.scale(wood_img, (32, 32))
                     except:
                         icon = pygame.Surface((32, 32))
                         icon.fill((139, 69, 19))  # Brown fallback
                 # For stone items, try to load the actual stone image
                 elif itemKey == 'stone':
                     try:
-                        stonePath = "graphics/items/stone.png"
-                        stoneSurf = pygame.image.load(stonePath).convert_alpha() #load stone image
-                        # Scale to a reasonable size for world items - much smaller
-                        base_width, base_height = stoneSurf.get_size()
-                        target_width = max(16, int(base_width * ZOOM_X * 0.5))  # 50% smaller
-                        target_height = max(16, int(base_height * ZOOM_Y * 0.5))
-                        self.stoneSurf = pygame.transform.smoothscale(stoneSurf, (target_width, target_height)) #smooth scaling
-                    except Exception:
-                        # Create a better fallback stone
-                        surf = pygame.Surface((int(20 * ZOOM_X), int(20 * ZOOM_Y)), pygame.SRCALPHA)
-                        # Draw a simple stone shape
-                        pygame.draw.ellipse(surf, (120, 120, 120), (2, 2, int(16 * ZOOM_X), int(16 * ZOOM_Y)))
-                        pygame.draw.ellipse(surf, (100, 100, 100), (4, 4, int(12 * ZOOM_X), int(12 * ZOOM_Y)))
-                        self.stoneSurf = surf
-                
+                        stone_path = "graphics/items/stone.png"
+                        stone_img = pygame.image.load(stone_path).convert_alpha()
+                        icon = pygame.transform.scale(stone_img, (32, 32))
+                    except:
+                        icon = pygame.Surface((32, 32))
+                        icon.fill((128, 128, 128))  # Gray fallback
+                # For seeds, try to load seed images with proper naming
+                elif itemKey in ['kale','parsnips','beans','potatoes','melon','corn','hotPeppers',
+                            'tomato','cranberries','pumpkin','berries','onion','beets','artichoke']:
+                    try:
+                        # Map crop names to seed file names
+                        seed_name_map = {
+                            'kale': 'kaleSeeds', 'parsnips': 'parsnipSeeds', 'beans': 'beanSeeds',
+                            'potatoes': 'potatoSeeds', 'melon': 'melonSeeds', 'corn': 'cornSeeds',
+                            'hotPeppers': 'hotPepperSeeds', 'tomato': 'tomatoSeeds', 'cranberries': 'cranberrySeeds',
+                            'pumpkin': 'pumpkinSeeds', 'berries': 'berrySeeds', 'onion': 'onionSeeds',
+                            'beets': 'beetSeeds', 'artichoke': 'artichokeSeeds'
+                        }
+                        
+                        seed_filename = seed_name_map.get(itemKey, f"{itemKey}Seeds")
+                        seed_path = f"graphics/seeds/{seed_filename}.png"
+                        
+                        if os.path.exists(seed_path):
+                            seed_img = pygame.image.load(seed_path).convert_alpha()
+                            icon = pygame.transform.scale(seed_img, (32, 32))
+                        else:
+                            # Fallback: try graphics/items folder
+                            item_path = f"graphics/items/{seed_filename}.png"
+                            if os.path.exists(item_path):
+                                item_img = pygame.image.load(item_path).convert_alpha()
+                                icon = pygame.transform.scale(item_img, (32, 32))
+                            else:
+                                # Ultimate fallback: create colored seed icon
+                                icon = pygame.Surface((32, 32), pygame.SRCALPHA)
+                                seed_colors = {
+                                    'kale': (0, 128, 0), 'parsnips': (255, 255, 200), 'beans': (0, 200, 0),
+                                    'potatoes': (255, 248, 220), 'melon': (0, 180, 0), 'corn': (255, 255, 100),
+                                    'hotPeppers': (255, 50, 50), 'tomato': (255, 0, 0), 'cranberries': (200, 0, 50),
+                                    'pumpkin': (255, 165, 0), 'berries': (100, 0, 200), 'onion': (255, 255, 240),
+                                    'beets': (150, 0, 50), 'artichoke': (0, 100, 0)
+                                }
+                                color = seed_colors.get(itemKey, (200, 200, 200))
+                                pygame.draw.ellipse(icon, color, (8, 8, 16, 16))
+                                pygame.draw.ellipse(icon, (255, 255, 255), (10, 10, 12, 12), 1)
+                                
+                    except Exception as e:
+                        print(f"Error loading image for {itemKey}: {e}")
+                        # Final fallback
+                        icon = pygame.Surface((32, 32))
+                        icon.fill((200, 200, 200))
+            
             item_data = {
                 'name': itemKey,
                 'quantity': quantity,
@@ -115,11 +151,20 @@ class Inventory:
             return
         item = self.items[self.selectedIndex]
 
-        print(f"Using {item['name']} ({item.get('type', 'unknown')})")
+        print(f"Using {item['name']}")
 
-        if item.get('type') == "seed" and self.level:
-            self.level.plantSeed(self.level.player.targetPos, item['name'])
-            self.removeItem(self.selectedIndex, 1)
+        # Handle seed planting
+        if item['name'] in ['kale','parsnips','beans','potatoes','melon','corn','hotPeppers',
+                        'tomato','cranberries','pumpkin','berries','onion','beets','artichoke']:
+            if self.level and hasattr(self.level, 'plantCrop'):
+                success = self.level.plantCrop(item['name'], self.level.player)
+                if success:
+                    self.removeItem(self.selectedIndex, 1)
+                    print(f"Planted {item['name']} seed")
+                else:
+                    print("Could not plant seed - no tilled soil in front")
+            else:
+                print("No level reference or plantCrop method")
 
         elif item.get('type') == "tool":
             print(f"Swinging {item['name']}")
