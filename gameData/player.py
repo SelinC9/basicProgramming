@@ -35,12 +35,16 @@ class Player(pygame.sprite.Sprite):
         # Movement
         self.direction = pygame.math.Vector2() # Initialize direction vector
         self.pos = pygame.math.Vector2(self.rect.center) # Use float for precise movement
-        self.speed = 200
+        self.speed = 180
 
         # Collision
         self.hitbox = pygame.Rect(0,0,20,24)
         self.hitbox.center = self.rect.center # Align hitbox with player rect
         self.collisionSprites = collisionSprites # Sprites to check collision against
+
+        #sleep system
+        self.canSleep = False
+        self.sleepTimer = Timer(5000, self.sleep) # 5 seconds to sleep
 
         # Timers
         self.timers = {
@@ -60,7 +64,7 @@ class Player(pygame.sprite.Sprite):
         self.inventoryCapacity = 20 # Max different item types
 
         # Tools & seeds
-        self.tools = ['hoe','axe','wateringCan']
+        self.tools = ['hoe','axe','wateringCan', 'pickaxe'] # Available tools
         self.toolIndex = 0
         self.selectedTool = self.tools[self.toolIndex] # Start with first tool
 
@@ -84,6 +88,8 @@ class Player(pygame.sprite.Sprite):
             self.level.waterSoil(target) # Water soil at target position
         elif self.selectedTool == 'axe':
             self.level.chopTree(tileX, tileY) # Chop tree at target position
+        elif self.selectedTool == 'pickaxe':
+            self.level.breakRock(tileX, tileY) # Mine rock at target position
 
     def useSeed(self):
         self.level.plantCrop(self.selectedSeed, self) # Plant selected seed at target position
@@ -103,21 +109,129 @@ class Player(pygame.sprite.Sprite):
             'upIdle','downIdle','leftIdle','rightIdle',
             'upHoe','downHoe','leftHoe','rightHoe',
             'upAxe','downAxe','leftAxe','rightAxe',
+            'upPickaxe','downPickaxe','leftPickaxe','rightPickaxe',
             'upWater','downWater','leftWater','rightWater'
         ]}
         for key in self.animations.keys(): 
             fullPath = os.path.join(characterPath,key) # Full path to animation folder
-            self.animations[key] = importFolder(fullPath) # Load all frames in folder
+            if os.path.exists(fullPath): # Check if folder exists
+                loaded_frames = importFolder(fullPath) # Load all frames in folder
+                if loaded_frames: # Only use if we got actual frames
+                    self.animations[key] = loaded_frames
+                else:
+                    # Create a simple fallback frame
+                    fallback = pygame.Surface((32, 32))
+                    fallback.fill((255, 0, 255))
+                    self.animations[key] = [fallback]
+                    print(f"Created fallback for {key} - no frames loaded")
+            else:
+                # Create a simple fallback frame for missing folders
+                fallback = pygame.Surface((32, 32))
+                fallback.fill((255, 0, 255))
+                self.animations[key] = [fallback]
+                print(f"Created fallback for {key} - folder missing")
+
+    def pickupItem(self):
+        # Find the nearest pickupable item
+        nearest_item = None
+        min_distance = float('inf')
+        
+        if hasattr(self.level, 'itemsGroup'):
+            for item in self.level.itemsGroup:
+                if hasattr(item, 'pickup') and item.pickup:
+                    distance = pygame.math.Vector2(item.rect.center).distance_to(
+                        pygame.math.Vector2(self.rect.center))
+                    
+                    if distance < 50 and distance < min_distance:  # Within pickup range
+                        nearest_item = item
+                        min_distance = distance
+        
+        if nearest_item:
+            # Add to inventory instead of just destroying
+            success = self.inventory.addItem(
+                nearest_item.pickupKey, 
+                1,
+                getattr(nearest_item, 'icon', None)
+            )
+            
+            if success:
+                print(f"Picked up {nearest_item.pickupKey}")
+                nearest_item.kill()
+            else:
+                print("Inventory full - couldn't pick up item")
 
     def animate(self, deltaTime):
-        if self.animations.get(self.status): # Check if animation list exists
-            self.frameIndex += 10 * deltaTime # Animation speed
-            if self.frameIndex >= len(self.animations[self.status]): 
+        # Store current position and rect before any animation changes
+        current_center = self.rect.center
+        
+        # Get the current animation frames for the status
+        current_animation = self.animations.get(self.status, [])
+        
+        if current_animation and len(current_animation) > 0:
+            # 8 frames per second for smooth walking animation
+            animation_speed = 8.0  # frames per second
+            
+            # Update frame index based on time
+            self.frameIndex += animation_speed * deltaTime
+            
+            # Loop animation if we exceed frame count
+            if self.frameIndex >= len(current_animation):
                 self.frameIndex = 0
-            self.image = self.animations[self.status][int(self.frameIndex)] # Update image
-
+            
+            # Get the current frame
+            current_frame = current_animation[int(self.frameIndex)]
+            
+            # Update the image while preserving the rect properties
+            old_rect = self.rect.copy()
+            self.image = current_frame
+            self.rect = self.image.get_rect(center=current_center)
+            
+        else:
+            # Fallback: use downIdle if current animation is completely empty
+            fallback_animation = self.animations.get('downIdle', [])
+            if fallback_animation and len(fallback_animation) > 0:
+                self.image = fallback_animation[0]
+                self.rect = self.image.get_rect(center=current_center)
+            else:
+                # Ultimate fallback
+                self.image = pygame.Surface((32, 32))
+                self.image.fill((255, 0, 255))
+                self.rect = self.image.get_rect(center=current_center)
+        
+        # Ensure hitbox stays aligned with the player
+        self.hitbox.center = self.rect.center
+        
     def input(self):
         keys = pygame.key.get_pressed()
+        
+        #debugging - MOVED TO TOP SO IT ALWAYS WORKS
+        if keys[pygame.K_1]:  # Press 1 to set to morning (6 AM)
+            if hasattr(self.level, 'time'):
+                self.level.time.currentTime = 6 * TIME_RATE
+                print(f"DEBUG: Set time to 6 AM - currentTime: {self.level.time.currentTime}")
+            else:
+                print("DEBUG: No time system found!")
+        if keys[pygame.K_2]:  # Press 2 to set to noon (12 PM)
+            if hasattr(self.level, 'time'):
+                self.level.time.currentTime = 12 * TIME_RATE
+                print(f"DEBUG: Set time to 12 PM - currentTime: {self.level.time.currentTime}")
+        if keys[pygame.K_3]:  # Press 3 to set to evening (6 PM)
+            if hasattr(self.level, 'time'):
+                self.level.time.currentTime = 18 * TIME_RATE
+                print(f"DEBUG: Set time to 6 PM - currentTime: {self.level.time.currentTime}")
+        if keys[pygame.K_4]:  # Press 4 to set to night (10 PM)
+            if hasattr(self.level, 'time'):
+                self.level.time.currentTime = 22 * TIME_RATE
+                print(f"DEBUG: Set time to 10 PM - currentTime: {self.level.time.currentTime}")
+        if keys[pygame.K_5]:  # Press 5 to advance time by 1 hour
+            if hasattr(self.level, 'time'):
+                self.level.time.currentTime += 60
+                print(f"DEBUG: Advanced time by 1 hour - currentTime: {self.level.time.currentTime}")
+        if keys[pygame.K_6]:  # Press 6 to advance time by 6 hours
+            if hasattr(self.level, 'time'):
+                self.level.time.currentTime += 360
+                print(f"DEBUG: Advanced time by 6 hours - currentTime: {self.level.time.currentTime}")
+
         if not self.timers['tool use'].active:
             self.direction.x = 0
             self.direction.y = 0
@@ -146,6 +260,11 @@ class Player(pygame.sprite.Sprite):
                 else:
                     self.status = 'downIdle'
 
+            #Sleep interaction(when near bed)
+            if keys[pygame.K_z] and self.canSleep and not self.sleepTimer.active:
+                self.sleepTimer.activate()
+                print("Going to sleep...")
+
             # Tool use
             if keys[pygame.K_SPACE]:
                 self.timers['tool use'].activate()
@@ -170,6 +289,10 @@ class Player(pygame.sprite.Sprite):
                 self.seedIndex = (self.seedIndex + 1) % len(self.seeds)
                 self.selectedSeed = self.seeds[self.seedIndex]
 
+            # F key pickup
+            if keys[pygame.K_f] and not self.timers['tool use'].active:
+                self.pickupItem()
+
     def getStatus(self):
         base = 'down'
         if 'up' in self.status:
@@ -185,6 +308,13 @@ class Player(pygame.sprite.Sprite):
             self.status = base + 'Idle' # Idle if not moving
         elif self.timers['tool use'].active: 
             self.status = base + self.selectedTool.capitalize() # Tool use animation
+
+    def sleep(self):
+        #move to the next day
+        if hasattr(self.level, 'time'):
+            self.level.time.currentTime = 6 * TIME_RATE  # Wake up at 6 AM
+            self.level.time.dayCount += 1
+            print(f"Good morning! Day {self.level.time.dayCount}")
 
     def updateTimers(self):
         for timer in self.timers.values():
@@ -250,3 +380,4 @@ class Player(pygame.sprite.Sprite):
         self.updateTimers() # Update timers
         self.getTargetPos() # Update target position
         self.animate(deltaTime) # Animate player
+        self.sleepTimer.update() # Update sleep timer

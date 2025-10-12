@@ -1,4 +1,5 @@
 import pygame
+import os
 from settings import *
 
 class Inventory:
@@ -42,28 +43,52 @@ class Inventory:
 
     # Add item to inventory
     def addItem(self, itemKey, quantity=1, icon=None):
-        if itemKey not in ITEMS and icon is None:
-            print(f"Item {itemKey} does not exist!")
-            return False
-
-        for i in self.items:
-            if i['name'] == itemKey:
-                i['quantity'] += quantity
+        for i, item in enumerate(self.items):
+            if item['name'] == itemKey:
+                self.items[i]['quantity'] += quantity
+                print(f"Added {quantity} {itemKey}. Total: {self.items[i]['quantity']}")
                 return True
-
+        
+        # Add new item if there's space
         if len(self.items) < self.size:
-            itemData = {
+            if icon is None:
+                # For wood items, try to load the actual wood image
+                if itemKey == 'wood':
+                    try:
+                        woodPath = "graphics/items/wood.png"
+                        woodImg = pygame.image.load(woodPath).convert_alpha()
+                        icon = pygame.transform.scale(woodImg, (32, 32))
+                    except:
+                        icon = pygame.Surface((32, 32))
+                        icon.fill((139, 69, 19))  # Brown fallback
+                # For stone items, try to load the actual stone image
+                elif itemKey == 'stone':
+                    try:
+                        stonePath = "graphics/items/stone.png"
+                        stoneSurf = pygame.image.load(stonePath).convert_alpha() #load stone image
+                        # Scale to a reasonable size for world items - much smaller
+                        base_width, base_height = stoneSurf.get_size()
+                        target_width = max(16, int(base_width * ZOOM_X * 0.5))  # 50% smaller
+                        target_height = max(16, int(base_height * ZOOM_Y * 0.5))
+                        self.stoneSurf = pygame.transform.smoothscale(stoneSurf, (target_width, target_height)) #smooth scaling
+                    except Exception:
+                        # Create a better fallback stone
+                        surf = pygame.Surface((int(20 * ZOOM_X), int(20 * ZOOM_Y)), pygame.SRCALPHA)
+                        # Draw a simple stone shape
+                        pygame.draw.ellipse(surf, (120, 120, 120), (2, 2, int(16 * ZOOM_X), int(16 * ZOOM_Y)))
+                        pygame.draw.ellipse(surf, (100, 100, 100), (4, 4, int(12 * ZOOM_X), int(12 * ZOOM_Y)))
+                        self.stoneSurf = surf
+                
+            item_data = {
                 'name': itemKey,
                 'quantity': quantity,
-                'image': icon if icon else ITEMS[itemKey].get('image', pygame.Surface((32, 32)))
+                'image': icon
             }
-            if itemData['image'] is None:
-                itemData['image'] = pygame.Surface((32, 32))
-                itemData['image'].fill((255, 0, 0))
-            self.items.append(itemData)
+            self.items.append(item_data)
+            print(f"Added {itemKey} to inventory. Total: {quantity}")
             return True
-
-        print("Inventory full!")
+        
+        print(f"Inventory full! Could not add {itemKey}")
         return False
 
     # Remove item

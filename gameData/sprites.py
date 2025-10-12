@@ -315,4 +315,54 @@ class Wood(Generic):
         self.pickupKey = 'wood' #key for inventory
         self.itemName = 'wood' #name for inventory
         self.icon = pygame.transform.scale(surf, (32, 32)) #icon for inventory
+
+        if self.icon.get_size() == (0, 0) or self.icon.get_width() == 0:
+            try:
+                # Try to load the wood image directly
+                wood_path = os.path.join("graphics", "items", "wood.png")
+                if os.path.exists(wood_path):
+                    wood_img = pygame.image.load(wood_path).convert_alpha()
+                    self.icon = pygame.transform.scale(wood_img, (32, 32))
+                else:
+                    # Fallback: create a simple wood-colored surface
+                    self.icon = pygame.Surface((32, 32), pygame.SRCALPHA)
+                    pygame.draw.rect(self.icon, (139, 69, 19), (0, 0, 32, 32))
+                    pygame.draw.rect(self.icon, (101, 67, 33), (4, 4, 24, 24))
+            except Exception as e:
+                print(f"Error loading wood icon: {e}")
+                # Final fallback
+                self.icon = pygame.Surface((32, 32))
+                self.icon.fill((139, 69, 19))  # Brown
+
+        self.hitbox = self.rect.copy().inflate(-self.rect.width * 0.5, -self.rect.height * 0.5) #smaller hitbox
+
+class Stone(Generic):
+    def __init__(self, pos, surf, groups):
+        super().__init__(pos, surf, groups, LAYERS['main']) #call parent constructor
+        self.pickup = True
+        self.pickupKey = 'stone' #key for inventory
+        self.itemName = 'stone' #name for inventory
+        
+        # Create icon from the stone image - properly scaled for inventory
+        self.icon = pygame.transform.smoothscale(surf, (32, 32))
+        
+        # If scaling didn't work properly, create a fresh load
+        if self.icon.get_size() == (0, 0) or surf.get_size()[0] > 50:  #arbitrary large width check
+            try:
+                # Try to load the stone image directly
+                stonePath = os.path.join("graphics", "items", "stone.png")
+                if os.path.exists(stonePath):
+                    stoneImg = pygame.image.load(stonePath).convert_alpha()
+                    self.icon = pygame.transform.scale(stoneImg, (32, 32))
+                else:
+                    # Fallback: create a simple stone-colored surface
+                    self.icon = pygame.Surface((32, 32), pygame.SRCALPHA)
+                    pygame.draw.ellipse(self.icon, (128, 128, 128), (0, 0, 32, 32))
+                    pygame.draw.ellipse(self.icon, (100, 100, 100), (4, 4, 24, 24))
+            except Exception as e:
+                print(f"Error loading stone icon: {e}")
+                # Final fallback
+                self.icon = pygame.Surface((32, 32))
+                self.icon.fill((128, 128, 128))  # Gray
+        
         self.hitbox = self.rect.copy().inflate(-self.rect.width * 0.5, -self.rect.height * 0.5) #smaller hitbox

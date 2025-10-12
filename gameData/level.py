@@ -37,6 +37,16 @@ class Level:
             surf.fill((0, 0, 0, 0)) #make it transparent
             self.woodSurf = surf #use empty surface if loading fails
 
+        # stone surface (fallback if missing) - SMALLER SIZE
+        try:
+            stonePath = "graphics/items/stone.png"
+            stoneSurf = pygame.image.load(stonePath).convert_alpha() #load stone image
+            self.stoneSurf = pygame.transform.scale(stoneSurf, (int(24 * ZOOM_X), int(24 * ZOOM_Y))) #scale stone image - smaller size
+        except Exception:
+            surf = pygame.Surface((int(24 * ZOOM_X), int(24 * ZOOM_Y)), pygame.SRCALPHA) #create empty surface
+            surf.fill((0, 0, 0, 0)) #make it transparent
+            self.stoneSurf = surf #use empty surface if loading fails
+
         # map
         self.tmxData = load_pygame('graphics/world/myfarm.tmx') #load tmx map
         mapWidth = self.tmxData.width * self.tmxData.tilewidth #in pixels
@@ -47,13 +57,17 @@ class Level:
         self.playerAdded = False
         self.setup()
 
+        #Time system
+        from transition import Time
+        self.time = Time()
+
     def getTileInFront(self, player): #get tile coordinates in front of player
         tileX = player.rect.centerx // TILE_SIZE #get tile coordinates
         tileY = player.rect.centery // TILE_SIZE #get tile coordinates
         direction = player.status #player direction
         if "Idle" in direction: 
             direction = direction.replace("Idle", "") #remove idle
-        for tool in ["Axe", "Water", "Hoe"]: #remove tool from direction
+        for tool in ["Axe", "Water", "Hoe", "Pickaxe"]: #remove tool from direction
             if direction.endswith(tool): 
                 direction = direction[:-len(tool)]
                 break
@@ -114,6 +128,50 @@ class Level:
             
             if wasChopped and closestTree.isChopped: #only if actually chopped
                 self.trees.remove(closestTree)
+            return True
+        
+        return False
+
+    def breakRock(self, tileX, tileY):
+        # More precise targeting so only check the exact tile
+        targetPos = (tileX * TILE_SIZE, tileY * TILE_SIZE)
+        targetRect = pygame.Rect(targetPos, (TILE_SIZE, TILE_SIZE))
+                
+        closestRock = None
+        minDistance = float('inf')
+        
+        # Check both the visible rock sprites and collision sprites
+        for sprite in self.allSprites:
+            if (hasattr(sprite, 'breakable') and sprite.breakable and 
+                sprite.rect.colliderect(targetRect)):
+                # Find the closest rock to the target center
+                rockCenter = sprite.rect.center
+                targetCenter = targetRect.center
+                distance = ((rockCenter[0] - targetCenter[0]) ** 2 + 
+                        (rockCenter[1] - targetCenter[1]) ** 2) ** 0.5
+                
+                if distance < minDistance:
+                    closestRock = sprite
+                    minDistance = distance
+        
+        if closestRock:
+            # Spawn stone items
+            numStones = random.randint(1, 2)
+            for _ in range(numStones):
+                offset_x = random.randint(-15, 15)
+                offset_y = random.randint(-15, 15)
+                stonePos = (closestRock.rect.centerx + offset_x, closestRock.rect.centery + offset_y)
+                Stone(stonePos, self.stoneSurf, [self.allSprites, self.itemsGroup])
+            
+            # Remove the rock from all groups
+            closestRock.kill()
+            
+            # Also remove any collision sprites at the same position
+            for collision_sprite in self.collisionSprites:
+                if (collision_sprite.rect.centerx == closestRock.rect.centerx and 
+                    collision_sprite.rect.centery == closestRock.rect.centery):
+                    collision_sprite.kill()
+            
             return True
         
         return False
@@ -209,11 +267,12 @@ class Level:
         for cluster in treeGroups:
             self.createTreeFromGroup(cluster)
         
+        # Create rocks with proper collision
         for obj in self.tmxData.get_layer_by_name("rock"):
             scaled_surf = pygame.transform.scale(obj.image, (int(obj.image.get_width() * ZOOM_X), int(obj.image.get_height() * ZOOM_Y)))
-            Generic((obj.x * ZOOM_X, obj.y * ZOOM_Y), scaled_surf, [self.allSprites])
-            rockHitbox = pygame.Surface((int(16 * ZOOM_X), int(16 * ZOOM_Y)), pygame.SRCALPHA)
-            Generic((obj.x * ZOOM_X, obj.y * ZOOM_Y), rockHitbox, [self.collisionSprites])
+            # Create one sprite that handles both visibility and collision
+            rock = Generic((obj.x * ZOOM_X, obj.y * ZOOM_Y), scaled_surf, [self.allSprites, self.collisionSprites])
+            rock.breakable = True  # Mark rock as breakable
                 
     def createTreeFromGroup(self, group):
         if not group:
@@ -279,6 +338,7 @@ class Level:
 
     def run(self, deltaTime):
         self.allSprites.update(deltaTime)
+        self.time.update(deltaTime)  # Update time system
         self.crops.update(deltaTime)
         self.particles.update(deltaTime)
         self.trees.update(deltaTime)
@@ -293,6 +353,7 @@ class Level:
 
         self.allSprites.customisedDraw(self.player) #draw with camera
         self.overlay.display()
+        self.time.draw()  # Draw time overlay
         self.player.inventory.draw(self.displaySurface)
 
 class CameraGroup(pygame.sprite.Group):

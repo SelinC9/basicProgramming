@@ -97,7 +97,6 @@ class MainGame:
     def run(self):
         self.menu()  # Show menu first
         running = True
-        inventory = Inventory()
 
         while running:
             for event in pygame.event.get():
@@ -106,11 +105,11 @@ class MainGame:
                     sys.exit()
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_i:
-                        inventory.toggle()
+                        self.level.player.inventory.toggle()
                     elif event.key == pygame.K_e:
-                        inventory.selectNext()
+                        self.level.player.inventory.selectNext()
                     elif event.key == pygame.K_q:
-                        inventory.selectPrev()
+                        self.level.player.inventory.selectPrev()
 
             deltaTime = self.clock.tick(100) / 1000.0  # Frame delta in seconds
             self.level.run(deltaTime)
@@ -121,7 +120,7 @@ class MainGame:
                     if self.level.player.timers['tool use'].active and self.level.player.rect.colliderect(tree.rect):
                         tree.chop(self.level.particles, self.level.allSprites, self.level.player)
 
-            inventory.draw(self.windowScreen)
+            self.level.player.inventory.draw(self.windowScreen)
             pygame.display.update()
 
 

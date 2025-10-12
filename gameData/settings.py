@@ -40,6 +40,15 @@ LAYERS = {
     'abovePlayer': 5
 }
 
+#Time System
+TIME_RATE = 60  # 1 real second equals 60 in-game seconds
+DAY_LENGTH = 24 * TIME_RATE  # Total in-game seconds in a day
+
+#DAY NIGHT COLOURS
+NIGHT_COLOUR = (25, 25, 50, 180) # Dark blue with transparency
+DAWN_COLOR = (255, 150, 50, 100)  # Orange with transparency
+DUSK_COLOR = (150, 75, 100, 120)  # Purple with transparency
+
 # ITEMS DICTIONARY
 ITEMS = {
     # Crops / Seeds

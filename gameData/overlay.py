@@ -8,6 +8,8 @@ class Overlay:
         self.displaySurface = pygame.display.get_surface()
         self.player = player
 
+        self.font = pygame.font.Font('assets/fonts/Pixellari.ttf',24) #font for time display
+
         #paths
         overlayPath = 'coursework\\gameData\\graphics\\overlay\\'
         iconSize = (64,64) #changeable icon size
@@ -42,3 +44,20 @@ class Overlay:
         seedSurf = self.seedsSurf[self.player.selectedSeed] #get the surface of the selected seed
         seedRect = seedSurf.get_rect(midbottom = OVERLAY_POSITIONS['seed']) #get the rectangle of the seed surface
         self.displaySurface.blit(seedSurf,seedRect) #blit the seed surface to the display surface
+
+        #draw time in the corner
+        if hasattr(self.player.level, 'time'):
+            timeText = self.font.render(
+                f"{self.player.level.time.getTimeString()}", 
+                True, (255, 255, 255))
+            
+            dayText = self.font.render(
+                f"{self.player.level.time.getDayString()}", 
+                True, (255, 255, 255))
+            
+            #position in top right corner without background
+            timeRect = timeText.get_rect(topright=(SCREEN_WIDTH - 20, 20))
+            self.displaySurface.blit(timeText, timeRect)
+            
+            dayRect = dayText.get_rect(topright=(SCREEN_WIDTH - 20, 50))
+            self.displaySurface.blit(dayText, dayRect)
