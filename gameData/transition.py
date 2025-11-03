@@ -3,12 +3,14 @@ from settings import *
 
 class Time:
     def __init__(self):
-        self.display_surface = pygame.display.get_surface()
+        self.displaySurface = pygame.display.get_surface()
         
         # Time tracking
         self.currentTime = 6 * TIME_RATE  # Start at 6:00 AM
         self.dayCount = 1
         self.season = 'spring'
+        self.lastAutoSaveDay = 0
+        self.autoSaveTriggered = False
         
         # Overlay surface for day/night effects
         self.overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
@@ -16,6 +18,9 @@ class Time:
         # Seasons
         self.seasons = ['spring', 'summer', 'autumn', 'winter']
         self.seasonIndex = 0
+        
+        # Auto-save tracking
+        self.autoSaveCooldown = False
         
     @property
     def hour(self):
@@ -29,7 +34,25 @@ class Time:
         # Update game time
         self.currentTime += dt / 1000 * TIME_RATE
         
+        # Check for auto-save at 7:00 AM (7 * TIME_RATE)
+        if self.hour == 7 and self.minute == 0 and not self.autoSaveCooldown:
+            self.autoSaveCooldown = True
+            return True  # Signal to save the game
+        
+        # Reset auto-save cooldown after 7:00 AM
+        if self.hour != 7 or self.minute != 0:
+            self.autoSaveCooldown = False
+
         # Check for new day
+        if self.currentTime >= DAY_LENGTH and not self.autoSaveTriggered:
+            self.autoSaveTriggered = True
+            return True  # Signal to save the game
+
+        # Reset day transition trigger
+        if self.currentTime < DAY_LENGTH:
+            self.autoSaveTriggered = False
+
+        # Handle day transition
         if self.currentTime >= DAY_LENGTH:
             self.currentTime = 0
             self.dayCount += 1
@@ -63,7 +86,7 @@ class Time:
         color = self.getTimeColor()
         if color[3] > 0:
             self.overlay.fill(color)
-            self.display_surface.blit(self.overlay, (0, 0))
+            self.displaySurface.blit(self.overlay, (0, 0))
     
     def getTimeString(self):
         return f"{self.hour:02d}:{self.minute:02d}"

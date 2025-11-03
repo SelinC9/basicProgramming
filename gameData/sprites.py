@@ -261,12 +261,23 @@ class Crop(pygame.sprite.Sprite):
         self.cropName = cropName
         self.growthStages = self.loadGrowthStages(cropName)
         self.stage = 0
-        self.image = self.growthStages[self.stage] if self.growthStages else pygame.Surface((32,32)) #fallback
+        self.image = self.growthStages[self.stage] if self.growthStages else self.createFallbackSurface() #fallback
         self.rect = self.image.get_rect(topleft=pos) #position
-        self.growthTime = GROW_SPEED.get(cropName, 1000) #default 1000s
-        self.elapsedTime = 0 #time since last growth
+        self.growthTime = GROW_SPEED.get(cropName, 7 * DAY_LENGTH) #default 7 days
+        self.elapsedTime = 0 #time since planted
         self.fullyGrown = False #flag
         self.z = LAYERS['crops']  # Use the 'crops' layer which is above soil
+        
+        print(f"Planted {cropName} - Total growth time: {self.growthTime}ms, Stages: {len(self.growthStages)}")
+
+    def createFallbackSurface(self):
+        surf = pygame.Surface((int(32 * ZOOM_X), int(32 * ZOOM_Y)), pygame.SRCALPHA)
+        color = (random.randint(100, 200), random.randint(150, 255), random.randint(100, 200))
+        pygame.draw.rect(surf, color, (0, 0, surf.get_width(), surf.get_height()))
+        font = pygame.font.Font(None, 20)
+        text = font.render("CROP", True, (255, 255, 255))
+        surf.blit(text, (5, 10))
+        return surf
 
     def loadGrowthStages(self, cropName):
         stages = []
@@ -294,10 +305,8 @@ class Crop(pygame.sprite.Sprite):
             
         print(f"Sorted files: {files}")
         
-        # Only load stages 0-4 for growth (stage 5 is for harvesting)
-        growth_files = [f for f in files if int(os.path.splitext(f)[0]) <= 4]
-        
-        for fileName in growth_files: #load each image
+        # Load all growth stages (0 through 4 for growth, 5 for harvest)
+        for fileName in files: #load each image
             try:
                 filePath = os.path.join(folderPath, fileName)
                 img = pygame.image.load(filePath).convert_alpha() #load
@@ -314,45 +323,80 @@ class Crop(pygame.sprite.Sprite):
         if self.fullyGrown or not self.growthStages: 
             return
             
-        self.elapsedTime = self.elapsedTime + deltaTime #increment elapsed time
+        self.elapsedTime = self.elapsedTime + deltaTime #increment elapsed time in milliseconds
         
-        # Calculate time per stage (you have 5 growth stages: 0-4)
-        totalStages = len(self.growthStages)
-        timePerStage = self.growthTime / (totalStages - 1) if totalStages > 1 else self.growthTime
+        # Calculate which stage we should be at based on total elapsed time
+        totalStages = len(self.growthStages) - 1  # We have stages 0-4 for growth (5 stages total)
+        timePerStage = self.growthTime / totalStages if totalStages > 0 else self.growthTime
         
-        # Grow to next stage when enough time has passed
-        if self.elapsedTime >= timePerStage and self.stage < totalStages - 1:
-            self.stage = self.stage + 1
+        # Determine target stage based on elapsed time
+        targetStage = min(totalStages - 1, int(self.elapsedTime / timePerStage))
+        
+        # Only update if we've reached a new stage
+        if targetStage > self.stage:
+            self.stage = targetStage
             self.image = self.growthStages[self.stage] #update image
-            self.elapsedTime = 0
-            print(f"{self.cropName} grew to stage {self.stage}/{totalStages - 1}")
+            print(f"{self.cropName} grew to stage {self.stage}/{totalStages - 1} (elapsed: {self.elapsedTime}ms, per stage: {timePerStage}ms)")
 
-            # Stage 4 is fully grown (since you have growth stages 0-4)
+            # Check if fully grown (at the last growth stage before harvest)
             if self.stage == totalStages - 1: 
                 self.fullyGrown = True
                 print(f"🎉 {self.cropName} is fully grown and ready to harvest!")
 
-    def harvest(self):
-        if self.fullyGrown:
-            # Load the harvested stage (stage 5) if it exists
-            harvested_image = self.loadHarvestedStage()
-            if harvested_image:
-                self.image = harvested_image
-                print(f"🌾 {self.cropName} harvested! Showing stage 5")
-            return True
-        return False
-
-    def loadHarvestedStage(self):
-        try:
-            folderPath = os.path.join("graphics", "overlay", self.cropName)
-            harvested_path = os.path.join(folderPath, "5.png")
-            if os.path.exists(harvested_path):
-                img = pygame.image.load(harvested_path).convert_alpha()
-                img = pygame.transform.scale(img, (int(img.get_width() * ZOOM_X), int(img.get_height() * ZOOM_Y)))
-                return img
-        except Exception as e:
-            print(f"Error loading harvested stage for {self.cropName}: {e}")
+    def harvest(self, player = None):
+        if self.fullyGrown and not self.harvested:
+            self.harvested = True
+            
+            # Show the harvested stage (stage 5) if it exists
+            harvestedStage = len(self.growthStages) - 1
+            if harvestedStage < len(self.growthStages):
+                self.image = self.growthStages[harvestedStage]
+                print(f"{self.cropName} harvested! Showing stage {harvestedStage}")
+            
+            # Return the crop item to add to inventory
+            cropItem = self.getHarvestItem()
+            
+            # Optional: Add particles or effects
+            if hasattr(player, 'level') and hasattr(player.level, 'particlesGroup'):
+                self.createHarvestParticles(player.level.particlesGroup)
+            
+            return cropItem
         return None
+    
+    def getHarvestItem(self):
+        return {
+            'type': 'crop',
+            'name': self.cropName,
+        }
+
+    def createHarvestParticles(self, particlesGroup):
+        if not particlesGroup:
+            return
+            
+        # Create harvest particles
+        for i in range(5):
+            pos = (
+                self.rect.centerx + random.randint(-10, 10),
+                self.rect.centery + random.randint(-10, 10)
+            )
+            # Create a particle surface
+            particle_surf = pygame.Surface((4, 4), pygame.SRCALPHA)
+            particle_surf.fill((255, 255, 0))  # Yellow harvest color
+            
+            velocity = (random.uniform(-50, 50), random.uniform(-80, -20))
+            
+            Particle(pos, particle_surf, [particlesGroup], velocity, duration=1000)
+
+    def isReadyToHarvest(self):
+        return self.fullyGrown and not self.harvested
+
+    def getGrowthProgress(self):
+        if not self.growthStages or len(self.growthStages) <= 1:
+            return 0.0
+        
+        totalStages = len(self.growthStages) - 1
+        progress = min(1.0, self.elapsedTime / self.growthTime)
+        return progress
 
 class SoilTile(pygame.sprite.Sprite):
     def __init__(self, pos, groups, untiledImage, tilledImage):

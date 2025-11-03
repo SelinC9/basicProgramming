@@ -1,0 +1,1528 @@
+{
+  "player": {
+    "position": {
+      "x": 400,
+      "y": 300
+    },
+    "money": 60,
+    "inventory": [
+      {
+        "name": "kale",
+        "quantity": 2
+      }
+    ]
+  },
+  "farm": {
+    "soilTiles": [
+      {
+        "position": {
+          "x": 480,
+          "y": 256
+        },
+        "tilled": true
+      },
+      {
+        "position": {
+          "x": 480,
+          "y": 288
+        },
+        "tilled": true
+      },
+      {
+        "position": {
+          "x": 512,
+          "y": 288
+        },
+        "tilled": true
+      },
+      {
+        "position": {
+          "x": 512,
+          "y": 320
+        },
+        "tilled": true
+      },
+      {
+        "position": {
+          "x": 480,
+          "y": 320
+        },
+        "tilled": true
+      }
+    ],
+    "crops": [
+      {
+        "position": {
+          "x": 480,
+          "y": 256
+        },
+        "type": "kale",
+        "stage": 0,
+        "growthProgress": 129.75100000000373,
+        "fullyGrown": false
+      },
+      {
+        "position": {
+          "x": 512,
+          "y": 288
+        },
+        "type": "kale",
+        "stage": 0,
+        "growthProgress": 122.21200000000422,
+        "fullyGrown": false
+      },
+      {
+        "position": {
+          "x": 480,
+          "y": 288
+        },
+        "type": "kale",
+        "stage": 0,
+        "growthProgress": 119.68400000000376,
+        "fullyGrown": false
+      },
+      {
+        "position": {
+          "x": 512,
+          "y": 320
+        },
+        "type": "kale",
+        "stage": 0,
+        "growthProgress": 115.2190000000033,
+        "fullyGrown": false
+      },
+      {
+        "position": {
+          "x": 480,
+          "y": 320
+        },
+        "type": "kale",
+        "stage": 0,
+        "growthProgress": 112.78400000000302,
+        "fullyGrown": false
+      }
+    ],
+    "trees": [
+      {
+        "position": {
+          "x": 1051,
+          "y": -5
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 603,
+          "y": 11
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1419,
+          "y": 11
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 123,
+          "y": 27
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 939,
+          "y": 27
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1675,
+          "y": 27
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1883,
+          "y": 27
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2347,
+          "y": 27
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 491,
+          "y": 43
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 11,
+          "y": 59
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 747,
+          "y": 59
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1227,
+          "y": 59
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2075,
+          "y": 75
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1547,
+          "y": 107
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 619,
+          "y": 139
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1019,
+          "y": 171
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1435,
+          "y": 171
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2331,
+          "y": 171
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1595,
+          "y": 187
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1675,
+          "y": 187
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1851,
+          "y": 187
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2091,
+          "y": 187
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 507,
+          "y": 203
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1179,
+          "y": 203
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1259,
+          "y": 203
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2219,
+          "y": 203
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 667,
+          "y": 219
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 747,
+          "y": 219
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1515,
+          "y": 219
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1739,
+          "y": 219
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2475,
+          "y": 219
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 251,
+          "y": 235
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 331,
+          "y": 235
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1115,
+          "y": 235
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 587,
+          "y": 251
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 187,
+          "y": 267
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 923,
+          "y": 267
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1979,
+          "y": 267
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1035,
+          "y": 283
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": -5,
+          "y": 299
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1803,
+          "y": 299
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2347,
+          "y": 299
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 107,
+          "y": 315
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1467,
+          "y": 331
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 539,
+          "y": 363
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 987,
+          "y": 363
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1227,
+          "y": 363
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2235,
+          "y": 363
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2395,
+          "y": 379
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2475,
+          "y": 379
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 59,
+          "y": 395
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1979,
+          "y": 395
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2059,
+          "y": 395
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1099,
+          "y": 411
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1451,
+          "y": 411
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1659,
+          "y": 411
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2315,
+          "y": 411
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1915,
+          "y": 427
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 171,
+          "y": 443
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 523,
+          "y": 443
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 731,
+          "y": 443
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1355,
+          "y": 459
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1723,
+          "y": 459
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1835,
+          "y": 475
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 427,
+          "y": 491
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1067,
+          "y": 491
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1195,
+          "y": 507
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1563,
+          "y": 507
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 139,
+          "y": 523
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 859,
+          "y": 523
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 971,
+          "y": 523
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2027,
+          "y": 523
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2267,
+          "y": 523
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 267,
+          "y": 539
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 635,
+          "y": 539
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1467,
+          "y": 539
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1787,
+          "y": 555
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 555,
+          "y": 587
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1899,
+          "y": 603
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2251,
+          "y": 603
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2459,
+          "y": 603
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 443,
+          "y": 619
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 283,
+          "y": 635
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 699,
+          "y": 635
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2155,
+          "y": 651
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1099,
+          "y": 667
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1371,
+          "y": 667
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 891,
+          "y": 683
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1867,
+          "y": 683
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1259,
+          "y": 699
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1995,
+          "y": 699
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2363,
+          "y": 699
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 571,
+          "y": 715
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 779,
+          "y": 715
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1515,
+          "y": 715
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1771,
+          "y": 715
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 459,
+          "y": 779
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 619,
+          "y": 795
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 699,
+          "y": 795
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1387,
+          "y": 795
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2219,
+          "y": 795
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 203,
+          "y": 811
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 283,
+          "y": 811
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 987,
+          "y": 811
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1739,
+          "y": 811
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 539,
+          "y": 827
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1931,
+          "y": 827
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2107,
+          "y": 827
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 139,
+          "y": 843
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1627,
+          "y": 843
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2363,
+          "y": 843
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1275,
+          "y": 859
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1435,
+          "y": 875
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1515,
+          "y": 875
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 59,
+          "y": 891
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1019,
+          "y": 891
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1099,
+          "y": 891
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1355,
+          "y": 907
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 315,
+          "y": 923
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 955,
+          "y": 923
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1819,
+          "y": 923
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2235,
+          "y": 923
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 491,
+          "y": 939
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 763,
+          "y": 955
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 11,
+          "y": 971
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 875,
+          "y": 971
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1627,
+          "y": 987
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2123,
+          "y": 987
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1083,
+          "y": 1003
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2283,
+          "y": 1003
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2363,
+          "y": 1003
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 123,
+          "y": 1019
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 475,
+          "y": 1019
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 683,
+          "y": 1019
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1307,
+          "y": 1019
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1867,
+          "y": 1019
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1947,
+          "y": 1019
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2203,
+          "y": 1035
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 827,
+          "y": 1051
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1803,
+          "y": 1051
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 379,
+          "y": 1067
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1611,
+          "y": 1083
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 91,
+          "y": 1099
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 939,
+          "y": 1099
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1291,
+          "y": 1099
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1499,
+          "y": 1099
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1723,
+          "y": 1099
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2395,
+          "y": 1099
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 219,
+          "y": 1115
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 587,
+          "y": 1115
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": -5,
+          "y": 1131
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1931,
+          "y": 1131
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1195,
+          "y": 1147
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2155,
+          "y": 1147
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 907,
+          "y": 1179
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1675,
+          "y": 1179
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1035,
+          "y": 1195
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1403,
+          "y": 1195
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 811,
+          "y": 1211
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1787,
+          "y": 1227
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2139,
+          "y": 1227
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2347,
+          "y": 1227
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 395,
+          "y": 1259
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 75,
+          "y": 1275
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 571,
+          "y": 1275
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2043,
+          "y": 1275
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 203,
+          "y": 1307
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1003,
+          "y": 1307
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1755,
+          "y": 1307
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2491,
+          "y": 1307
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1323,
+          "y": 1323
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1883,
+          "y": 1323
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 2251,
+          "y": 1323
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 763,
+          "y": 1339
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1659,
+          "y": 1339
+        },
+        "health": 5,
+        "alive": true
+      },
+      {
+        "position": {
+          "x": 1163,
+          "y": 1355
+        },
+        "health": 5,
+        "alive": true
+      }
+    ],
+    "items": []
+  },
+  "time": {
+    "currentTime": 420.00894,
+    "dayCount": 28,
+    "season": "summer"
+  },
+  "metadata": {
+    "slot": 1,
+    "timestamp": 24018,
+    "dayCount": 28,
+    "season": "summer"
+  }
+}

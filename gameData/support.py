@@ -2,8 +2,7 @@ import pygame
 from os import walk #walk through different folders
 import os
 
-print("Current working directory:", os.getcwd())
-
+print("Current working directory:", os.getcwd()) #debug
 
 def importFolder(path): #import all the images from a folder
     surface_list = [] #list of surfaces

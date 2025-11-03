@@ -45,6 +45,14 @@ class Overlay:
         seedRect = seedSurf.get_rect(midbottom = OVERLAY_POSITIONS['seed']) #get the rectangle of the seed surface
         self.displaySurface.blit(seedSurf,seedRect) #blit the seed surface to the display surface
 
+        #display time
+        moneyBackground = pygame.Rect(15, SCREEN_HEIGHT - 100, 150, 30)
+        pygame.draw.rect(self.displaySurface, (101, 67, 33, 200), moneyBackground)
+        pygame.draw.rect(self.displaySurface, (160, 120, 70), moneyBackground, 2)
+
+        moneyText = self.font.render(f"Money: {self.player.money}g", True, (210, 180, 140))
+        self.displaySurface.blit(moneyText, (25, SCREEN_HEIGHT - 95))
+
         #draw time in the corner
         if hasattr(self.player.level, 'time'):
             timeText = self.font.render(

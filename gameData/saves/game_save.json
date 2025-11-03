@@ -1,0 +1,12 @@
+{
+  "player": {
+    "position": {
+      "x": 400,
+      "y": 300
+    },
+    "money": 100,
+    "inventory": [
+      {
+        "name": "kale",
+        "quantity": 5,
+        "image": 

@@ -6,21 +6,21 @@ from timer import Timer
 from inventory import Inventory
 
 PLAYER_TOOL_OFFSET = {
-    'up': pygame.math.Vector2(0, -32),
+    'up': pygame.math.Vector2(0, -32), 
     'down': pygame.math.Vector2(0, 32),
     'left': pygame.math.Vector2(-32, 0),
     'right': pygame.math.Vector2(32, 0)
 }
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos, groups, collisionSprites, level):
-        super().__init__(groups)
-        self.level = level
+    def __init__(self, pos, groups, collisionSprites, level): 
+        super().__init__(groups) # Initialize sprite with given groups
+        self.level = level # Reference to the game level
 
         # Load assets
-        self.importAssets()
-        self.status = 'downIdle'
-        self.frameIndex = 0
+        self.importAssets() #import the assets for the player
+        self.status = 'downIdle' # Initial status
+        self.frameIndex = 0 # Animation frame index
 
         # Use a fallback surface if animation empty
         if self.animations.get(self.status) and len(self.animations[self.status]) > 0: # Check if animation list is not empty
@@ -46,12 +46,16 @@ class Player(pygame.sprite.Sprite):
         self.canSleep = False
         self.sleepTimer = Timer(5000, self.sleep) # 5 seconds to sleep
 
+        #money
+        self.money = 100 # Starting money
+
         # Timers
         self.timers = {
             'tool use': Timer(350, self.useTool),
             'tool switch': Timer(200),
             'seed use': Timer(350, self.useSeed),
-            'seed switch': Timer(200)
+            'seed switch': Timer(200),
+            'harvest use': Timer(350, self.useHarvest)
         }
 
         # Inventory
@@ -95,6 +99,10 @@ class Player(pygame.sprite.Sprite):
             self.level.chopTree(tileX, tileY) # Chop tree at target position
         elif self.selectedTool == 'pickaxe':
             self.level.breakRock(tileX, tileY) # Mine rock at target position
+
+    def useHarvest(self):
+        tileX, tileY = self.level.getTileInFront(self) # Get tile in front of player
+        self.level.harvestCrop(tileX, tileY) # Harvest crop at target position
 
     def useSeed(self):
         self.level.plantCrop(self.selectedSeed, self) # Plant selected seed at target position
@@ -215,7 +223,7 @@ class Player(pygame.sprite.Sprite):
                 self.level.time.currentTime = 6 * TIME_RATE
                 print(f"DEBUG: Set time to 6 AM - currentTime: {self.level.time.currentTime}")
             else:
-                print("DEBUG: No time system found!")
+                print("DEBUG: No time system found")
         if keys[pygame.K_2]:  # Press 2 to set to noon (12 PM)
             if hasattr(self.level, 'time'):
                 self.level.time.currentTime = 12 * TIME_RATE
@@ -237,6 +245,25 @@ class Player(pygame.sprite.Sprite):
                 self.level.time.currentTime += 360
                 print(f"DEBUG: Advanced time by 6 hours - currentTime: {self.level.time.currentTime}")
 
+        if keys[pygame.K_b]:  # B key to open shop
+            self.level.shop.toggle()
+
+        if self.level.shop.visible:
+            # Use W/S or PageUp/PageDown for navigation
+            if keys[pygame.K_w] or keys[pygame.K_PAGEUP]:
+                self.level.shop.selectPrev()
+            if keys[pygame.K_s] or keys[pygame.K_PAGEDOWN]:
+                self.level.shop.selectNext()
+            if keys[pygame.K_TAB]:
+                self.level.shop.switchMode()
+            if keys[pygame.K_SPACE]:
+                if self.level.shop.mode == 'buy':
+                    self.level.shop.buyItem()
+                else:
+                    self.level.shop.sellItem()
+            if keys[pygame.K_ESCAPE]:
+                self.level.shop.visible = False
+                
         if not self.timers['tool use'].active:
             self.direction.x = 0
             self.direction.y = 0
@@ -294,6 +321,12 @@ class Player(pygame.sprite.Sprite):
                 self.seedIndex = (self.seedIndex + 1) % len(self.seeds)
                 self.selectedSeed = self.seeds[self.seedIndex]
 
+            # Harvest use
+            if keys[pygame.K_h] and not self.timers['harvest use'].active:
+                self.timers['harvest use'].activate()
+                self.direction = pygame.math.Vector2()
+                self.frameIndex = 0
+
             # F key pickup
             if keys[pygame.K_f] and not self.timers['tool use'].active:
                 self.pickupItem()
@@ -313,6 +346,8 @@ class Player(pygame.sprite.Sprite):
             self.status = base + 'Idle' # Idle if not moving
         elif self.timers['tool use'].active: 
             self.status = base + self.selectedTool.capitalize() # Tool use animation
+        elif self.timers['harvest use'].active:
+            self.status = base + 'Hoe' # Use hoe animation for harvesting
 
     def sleep(self):
         #move to the next day

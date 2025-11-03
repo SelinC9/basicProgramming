@@ -4,6 +4,8 @@ from pytmx.util_pygame import load_pygame
 from settings import *
 from sprites import *
 from overlay import Overlay
+from shop import Shop
+from saveSystem import SaveSystem
 
 class Level:
     def __init__(self):
@@ -54,8 +56,11 @@ class Level:
         self.mapRect = pygame.Rect(0, 0, mapWidth, mapHeight) #rectangle for map size
         self.allSprites.mapRect = self.mapRect #set map rect for camera group
 
+        self.shop = Shop(self) 
         self.playerAdded = False
         self.setup()
+
+        self.saveSystem = SaveSystem(self) #initialize save system
 
         #Time system
         from transition import Time
@@ -345,7 +350,7 @@ class Level:
         hitboxX = tree.rect.centerx - trunkWidth // 2
         hitboxY = tree.rect.centery - trunkHeight // 2
         
-        # Create one hitbox sprite (invisible collision only)
+        # Create hitbox sprite (invisible collision only)
         hitboxSurf = pygame.Surface((trunkWidth, trunkHeight))
         hitboxSurf.fill((0, 0, 0))
         hitboxSurf.set_alpha(0)  # Completely invisible
@@ -360,6 +365,12 @@ class Level:
 
     def run(self, deltaTime):
         self.allSprites.update(deltaTime)
+
+        shouldAutoSave = self.time.update(deltaTime)
+        if shouldAutoSave:
+            print("Auto-saving game...")
+            self.saveSystem.saveGame()
+
         self.time.update(deltaTime)  # Update time system
         self.crops.update(deltaTime)
         self.particles.update(deltaTime)
@@ -373,10 +384,16 @@ class Level:
                 if added:
                     sprite.kill()
 
+        if keys[pygame.K_F5]: #save game
+            self.saveSystem.saveGame()
+        if keys[pygame.K_F9]: #load game
+            self.saveSystem.loadGame()
+
         self.allSprites.customisedDraw(self.player) #draw with camera
         self.overlay.display()
         self.time.draw()  # Draw time overlay
         self.player.inventory.draw(self.displaySurface)
+        self.shop.draw()
 
 class CameraGroup(pygame.sprite.Group):
     def __init__(self):
